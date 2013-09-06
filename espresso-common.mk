@@ -65,7 +65,10 @@ PRODUCT_PACKAGES += \
     hwcomposer.piranha \
     lights.piranha \
     libinvensense_mpl \
-    power.piranha
+    power.piranha \
+    sensors.piranha \
+    geomagneticd \
+    orientationd
 
 # F2FS filesystem
 PRODUCT_PACKAGES += \
