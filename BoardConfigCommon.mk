@@ -18,6 +18,8 @@
 # Inherit common omap4 board config
 -include hardware/ti/omap4/BoardConfigCommon.mk
 
+TARGET_SPECIFIC_HEADER_PATH += device/samsung/espresso-common/include
+
 TARGET_NO_BOOTLOADER := true
 
 TARGET_BOARD_OMAP_CPU := 4430
@@ -54,6 +56,11 @@ BOARD_EGL_CFG := device/samsung/espresso-common/configs/egl.cfg
 # Boot Animation
 TARGET_BOOTANIMATION_PRELOAD := true
 TARGET_BOOTANIMATION_USE_RGB565 := true
+
+# RIL
+BOARD_VENDOR := samsung
+BOARD_PROVIDES_LIBRIL := true
+BOARD_MODEM_TYPE := xmm6260
 
 # Vold
 BOARD_VOLD_MAX_PARTITIONS := 12
