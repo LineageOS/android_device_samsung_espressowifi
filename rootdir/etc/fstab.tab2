@@ -14,6 +14,9 @@
 /devices/platform/omap/omap_hsmmc.0/mmc_host/mmc1*              auto    auto    defaults    wait,voldmanaged=sdcard1:auto,noemulatedsd
 /devices/platform/omap/musb-omap2430/musb-hdrc/usb1*            auto    auto    defaults    voldmanaged=usbdisk0:auto,noemulatedsd
 
+# zRAM
+/dev/block/zram0                                        none                swap      defaults                                              zramsize=67108864
+
 # recovery
 /dev/block/mmcblk0p5                                            /boot               emmc        defaults        recoveryonly
 /dev/block/mmcblk0p6                                            /recovery           emmc        defaults        recoveryonly
