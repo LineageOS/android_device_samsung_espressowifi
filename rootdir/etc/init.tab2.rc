@@ -27,6 +27,7 @@ on fs
     mkdir /efs
 
     mount_all /fstab.espresso
+    swapon_all /fstab.espresso
 
 # We chown/chmod /efs because mount is run as root + defaults
     chown radio system /efs
