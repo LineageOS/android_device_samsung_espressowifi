@@ -1,0 +1,16 @@
+# rild
+allow rild block_device:dir { search };
+allow rild dumpstate_exec:file getattr;
+allow rild efs_block_device:blk_file rw_file_perms;
+allow rild efs_block_device:dir { search };
+allow rild efs_file:file { read open write getattr setattr append };
+allow rild efs_file:dir { search };
+allow rild radio_data_file:dir { setattr };
+allow rild radio_device:chr_file rw_file_perms;
+allow rild self:netlink_kobject_uevent_socket { create bind read write };
+allow rild self:netlink_route_socket { write };
+allow rild self:netlink_socket { create bind read write };
+allow rild self:process { execmem };
+allow rild system_data_file:dir { getattr setattr write remove_name add_name search };
+allow rild system_data_file:file { getattr unlink create write setattr read open append };
+allow rild unlabeled:dir search;

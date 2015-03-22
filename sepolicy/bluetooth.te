@@ -1,0 +1,4 @@
+# Bluetooth
+allow bluetooth bluetooth_efs_file:file rw_file_perms;
+allow bluetooth efs_block_device:dir { search };
+allow bluetooth sysfs:file rw_file_perms;
