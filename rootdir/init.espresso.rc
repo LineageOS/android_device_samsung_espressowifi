@@ -173,9 +173,11 @@ service variant_setup /system/bin/init.espresso.variant.sh
     user root
     oneshot
 
-# stop ril-daemon for wifi-only device
+# stop ril services for wifi-only device
 on property:ro.carrier=wifi-only
     stop ril-daemon
+    stop qmuxd
+    stop netmgrd
 
 # LPM
 on property:ro.bootmode=charger
