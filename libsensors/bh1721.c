@@ -150,19 +150,19 @@ int bh1721_deactivate(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int bh1721_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
+int bh1721_set_delay(struct piranha_sensors_handlers *handlers, int64_t delay)
 {
 	struct bh1721_data *data;
 	int rc;
 
-	ALOGD("%s(%p, %ld)", __func__, handlers, delay);
+	ALOGD("%s(%p, %" PRId64 ")", __func__, handlers, delay);
 
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
 	data = (struct bh1721_data *) handlers->data;
 
-	rc = sysfs_value_write(data->path_delay, (int) delay);
+	rc = sysfs_value_write(data->path_delay, delay);
 	if (rc < 0) {
 		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;

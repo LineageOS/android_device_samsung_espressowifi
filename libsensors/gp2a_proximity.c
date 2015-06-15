@@ -147,9 +147,9 @@ int gp2a_proximity_deactivate(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int gp2a_proximity_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
+int gp2a_proximity_set_delay(struct piranha_sensors_handlers *handlers, int64_t delay)
 {
-	ALOGD("%s(%p, %ld)", __func__, handlers, delay);
+	ALOGD("%s(%p, %" PRId64 ")", __func__, handlers, delay);
 
 	return 0;
 }

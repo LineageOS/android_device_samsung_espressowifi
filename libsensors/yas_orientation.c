@@ -191,13 +191,12 @@ int yas_orientation_deactivate(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int yas_orientation_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
+int yas_orientation_set_delay(struct piranha_sensors_handlers *handlers, int64_t delay)
 {
 	struct yas_orientation_data *data;
-	int d;
 	int rc;
 
-	ALOGD("%s(%p, %ld)", __func__, handlers, delay);
+	ALOGD("%s(%p, %" PRId64 ")", __func__, handlers, delay);
 
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
@@ -214,11 +213,11 @@ int yas_orientation_set_delay(struct piranha_sensors_handlers *handlers, long in
 		data->magnetic_sensor->set_delay(data->magnetic_sensor, delay);
 
 	if (delay < 10000000)
-		d = 10;
+		delay = 10;
 	else
-		d = delay / 1000000;
+		delay /= 1000000;
 
-	rc = sysfs_value_write(data->path_delay, d);
+	rc = sysfs_value_write(data->path_delay, delay);
 	if (rc < 0) {
 		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;

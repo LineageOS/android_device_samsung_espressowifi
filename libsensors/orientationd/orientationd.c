@@ -95,8 +95,8 @@ void *orientationd_thread(void *thread_data)
 	struct orientationd_data *data;
 	struct input_event event;
 	struct timeval time;
-	long int before, after;
-	int diff;
+	int64_t before, after;
+	useconds_t diff;
 	int input_fd;
 	int rc;
 
@@ -137,7 +137,7 @@ next:
 			gettimeofday(&time, NULL);
 			after = timestamp(&time);
 
-			diff = (int) (data->delay * 1000000 - (after - before)) / 1000;
+			diff = (useconds_t) (data->delay * 1000000 - (after - before)) / 1000;
 			if (diff <= 0)
 				continue;
 
