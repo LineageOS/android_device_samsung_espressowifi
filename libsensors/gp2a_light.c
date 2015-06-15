@@ -150,19 +150,19 @@ int gp2a_light_deactivate(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int gp2a_light_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
+int gp2a_light_set_delay(struct piranha_sensors_handlers *handlers, int64_t delay)
 {
 	struct gp2a_light_data *data;
 	int rc;
 
-	ALOGD("%s(%p, %ld)", __func__, handlers, delay);
+	ALOGD("%s(%p, %" PRId64 ")", __func__, handlers, delay);
 
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
 	data = (struct gp2a_light_data *) handlers->data;
 
-	rc = sysfs_value_write(data->path_delay, (int) delay);
+	rc = sysfs_value_write(data->path_delay, delay);
 	if (rc < 0) {
 		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;

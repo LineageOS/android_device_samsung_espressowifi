@@ -44,15 +44,15 @@ void input_event_set(struct input_event *event, int type, int code, int value)
 	gettimeofday(&event->time, NULL);
 }
 
-long int timestamp(struct timeval *time)
+int64_t timestamp(struct timeval *time)
 {
 	if (time == NULL)
 		return -1;
 
-	return time->tv_sec * 1000000000LL + time->tv_usec * 1000;
+	return (int64_t) (time->tv_sec * 1000000000LL + time->tv_usec * 1000);
 }
 
-long int input_timestamp(struct input_event *event)
+int64_t input_timestamp(struct input_event *event)
 {
 	if (event == NULL)
 		return -1;
@@ -213,10 +213,10 @@ int sysfs_path_prefix(char *name, char *path_prefix)
 	return -1;
 }
 
-int sysfs_value_read(char *path)
+int64_t sysfs_value_read(char *path)
 {
 	char buffer[100];
-	int value;
+	int64_t value;
 	int fd = -1;
 	int rc;
 
@@ -231,7 +231,7 @@ int sysfs_value_read(char *path)
 	if (rc <= 0)
 		goto error;
 
-	value = atoi(buffer);
+	value = (int64_t)strtoimax(buffer, NULL, 10);
 	goto complete;
 
 error:
@@ -244,7 +244,7 @@ complete:
 	return value;
 }
 
-int sysfs_value_write(char *path, int value)
+int sysfs_value_write(char *path, int64_t value)
 {
 	char buffer[100];
 	int fd = -1;
@@ -257,7 +257,7 @@ int sysfs_value_write(char *path, int value)
 	if (fd < 0)
 		goto error;
 
-	snprintf((char *) &buffer, sizeof(buffer), "%d\n", value);
+	snprintf((char *) &buffer, sizeof(buffer), "%" PRId64 "\n", value);
 
 	rc = write(fd, buffer, strlen(buffer));
 	if (rc < (int) strlen(buffer))
