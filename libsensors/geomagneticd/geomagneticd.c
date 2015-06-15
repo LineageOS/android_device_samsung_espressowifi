@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,353 +16,506 @@
  */
 
 #include <stdlib.h>
-#include <unistd.h>
-#include <stdint.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <linux/ioctl.h>
+#include <poll.h>
 #include <linux/input.h>
+
+#include <hardware/sensors.h>
+#include <hardware/hardware.h>
 
 #define LOG_TAG "geomagneticd"
 #include <utils/Log.h>
 
-/*
- * This is a very intuitive implementation of what's going on with p5100/p3100
- * geomagneticd daemon. It seemed that geomagneticd sets an offset so that
- * the biggest value (after setting the offset) is 45µT or negative -45µT.
- * On the X axis, it happens more often to find the max around 40µT/-40µT.
- * The reference offsets I used were: 5005 420432 1153869, and we're getting
- * pretty close to this with that implementation.
- *
- */
+#include "geomagneticd.h"
+
+// This geomagnetic daemon is in charge of finding the correct calibration
+// offsets to apply to the YAS530 magnetic field sensor.
+// This is done by finding raw data extrema (minimum and maximum) for each axis
+// and calculating the offset so that these values are -45uT and 45uT.
 
 /*
- * Input
+ * Config
  */
 
-int input_open(char *name)
+int geomagneticd_config_read(struct geomagneticd_data *data)
 {
-	DIR *d;
-	struct dirent *di;
-
-	char input_name[80] = { 0 };
-	char path[PATH_MAX];
-	char *c;
-	int fd;
+	char buffer[100] = { 0 };
+	int config_fd = -1;
 	int rc;
 
-	if (name == NULL)
+	if (data == NULL)
 		return -EINVAL;
 
-	d = opendir("/dev/input");
-	if (d == NULL)
-		return -1;
-
-	while ((di = readdir(d))) {
-		if (di == NULL || strcmp(di->d_name, ".") == 0 || strcmp(di->d_name, "..") == 0)
-			continue;
-
-		snprintf(path, PATH_MAX, "/dev/input/%s", di->d_name);
-		fd = open(path, O_RDONLY);
-		if (fd < 0)
-			continue;
-
-		rc = ioctl(fd, EVIOCGNAME(sizeof(input_name) - 1), &input_name);
-		if (rc < 0)
-			continue;
-
-		c = strstr((char *) &input_name, "\n");
-		if (c != NULL)
-			*c = '\0';
-
-		if (strcmp(input_name, name) == 0)
-			return fd;
-		else
-			close(fd);
+	config_fd = open(GEOMAGNETICD_CONFIG_PATH, O_RDONLY);
+	if (config_fd < 0) {
+		ALOGE("%s: Unable to open config", __func__);
+		goto error;
 	}
 
-	return -1;
+	rc = read(config_fd, buffer, sizeof(buffer));
+	if (rc <= 0) {
+		ALOGE("%s: Unable to read config", __func__);
+		goto error;
+	}
+
+	rc = sscanf(buffer, "%d,%d,%d,%d,%d,%d,%d",
+		&data->hard_offsets[0], &data->hard_offsets[1], &data->hard_offsets[2],
+		&data->calib_offsets[0], &data->calib_offsets[1], &data->calib_offsets[2],
+		&data->accuracy);
+	if (rc != 7) {
+		ALOGE("%s: Unable to parse config", __func__);
+		goto error;
+	}
+
+	rc = 0;
+	goto complete;
+
+error:
+	rc = -1;
+
+complete:
+	if (config_fd >= 0)
+		close(config_fd);
+
+	return rc;
 }
 
-int sysfs_path_prefix(char *name, char *path_prefix)
+int geomagneticd_config_write(struct geomagneticd_data *data)
 {
-	DIR *d;
-	struct dirent *di;
+	char buffer[100] = { 0 };
+	int config_fd = -1;
+	int rc;
 
-	char input_name[80] = { 0 };
-	char path[PATH_MAX];
-	char *c;
-	int fd;
-
-	if (name == NULL || path_prefix == NULL)
+	if (data == NULL)
 		return -EINVAL;
 
-	d = opendir("/sys/class/input");
-	if (d == NULL)
-		return -1;
-
-	while ((di = readdir(d))) {
-		if (di == NULL || strcmp(di->d_name, ".") == 0 || strcmp(di->d_name, "..") == 0)
-			continue;
-
-		snprintf(path, PATH_MAX, "/sys/class/input/%s/name", di->d_name);
-
-		fd = open(path, O_RDONLY);
-		if (fd < 0)
-			continue;
-
-		read(fd, &input_name, sizeof(input_name));
-		close(fd);
-
-		c = strstr((char *) &input_name, "\n");
-		if (c != NULL)
-			*c = '\0';
-
-		if (strcmp(input_name, name) == 0) {
-			snprintf(path_prefix, PATH_MAX, "/sys/class/input/%s", di->d_name);
-			return 0;
-		}
+	config_fd = open(GEOMAGNETICD_CONFIG_BACKUP_PATH, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+	if (config_fd < 0) {
+		ALOGE("%s: Unable to open config", __func__);
+		goto error;
 	}
 
-	return -1;
+	sprintf(buffer, "%d,%d,%d,%d,%d,%d,%d",
+		data->hard_offsets[0], data->hard_offsets[1], data->hard_offsets[2],
+		data->calib_offsets[0], data->calib_offsets[1], data->calib_offsets[2],
+		data->accuracy);
+
+	rc = write(config_fd, buffer, strlen(buffer) + 1);
+	if (rc < (int) strlen(buffer) + 1) {
+		ALOGE("%s: Unable to write config", __func__);
+		goto error;
+	}
+
+	rename(GEOMAGNETICD_CONFIG_BACKUP_PATH, GEOMAGNETICD_CONFIG_PATH);
+
+	rc = 0;
+	goto complete;
+
+error:
+	rc = -1;
+
+complete:
+	if (config_fd >= 0)
+		close(config_fd);
+
+	return rc;
+}
+
+/*
+ * Offsets
+ */
+
+int geomagneticd_offsets_read(struct geomagneticd_data *data)
+{
+	char buffer[100] = { 0 };
+	int offsets_fd = -1;
+	int rc;
+
+	if (data == NULL)
+		return -EINVAL;
+
+	offsets_fd = open(data->path_offsets, O_RDONLY);
+	if (offsets_fd < 0) {
+		ALOGE("%s: Unable to open offsets", __func__);
+		goto error;
+	}
+
+	rc = read(offsets_fd, buffer, sizeof(buffer));
+	if (rc <= 0) {
+		ALOGE("%s: Unable to read offsets", __func__);
+		goto error;
+	}
+
+	rc = sscanf(buffer, "%d %d %d %d %d %d %d",
+		&data->hard_offsets[0], &data->hard_offsets[1], &data->hard_offsets[2],
+		&data->calib_offsets[0], &data->calib_offsets[1], &data->calib_offsets[2],
+		&data->accuracy);
+	if (rc != 7) {
+		ALOGE("%s: Unable to parse offsets", __func__);
+		goto error;
+	}
+
+	rc = 0;
+	goto complete;
+
+error:
+	rc = -1;
+
+complete:
+	if (offsets_fd >= 0)
+		close(offsets_fd);
+
+	return rc;
+}
+
+int geomagneticd_offsets_write(struct geomagneticd_data *data)
+{
+	char buffer[100] = { 0 };
+	int offsets_fd = -1;
+	int rc;
+
+	if (data == NULL)
+		return -EINVAL;
+
+	offsets_fd = open(data->path_offsets, O_WRONLY);
+	if (offsets_fd < 0) {
+		ALOGE("%s: Unable to open offsets", __func__);
+		goto error;
+	}
+
+	sprintf(buffer, "%d %d %d %d %d %d %d\n",
+		data->hard_offsets[0], data->hard_offsets[1], data->hard_offsets[2],
+		data->calib_offsets[0], data->calib_offsets[1], data->calib_offsets[2],
+		data->accuracy);
+
+	rc = write(offsets_fd, buffer, strlen(buffer) + 1);
+	if (rc < (int) strlen(buffer) + 1) {
+		ALOGE("%s: Unable to write offsets", __func__);
+		goto error;
+	}
+
+	rc = 0;
+	goto complete;
+
+error:
+	rc = -1;
+
+complete:
+	if (offsets_fd >= 0)
+		close(offsets_fd);
+
+	return rc;
+}
+
+int geomagneticd_offsets_init(struct geomagneticd_data *data)
+{
+	int count;
+	int i;
+
+	if (data == NULL)
+		return -EINVAL;
+
+	count = sizeof(data->hard_offsets) / sizeof(int);
+
+	// 0x7f is an invalid value for hard offsets
+	for (i = 0; i < count; i++)
+		data->hard_offsets[i] = 0x7f;
+
+	count = sizeof(data->calib_offsets) / sizeof(int);
+
+	// 0x0x7fffffff is an invalid value for calib offsets
+	for (i = 0; i < count; i++)
+		data->calib_offsets[i] = 0x7fffffff;
+
+	return 0;
+}
+
+int geomagneticd_offsets_check(struct geomagneticd_data *data)
+{
+	int count;
+	int i;
+
+	if (data == NULL)
+		return -EINVAL;
+
+	count = sizeof(data->hard_offsets) / sizeof(int);
+
+	// 0x7f is an invalid value for hard offsets
+	for (i = 0; i < count; i++)
+		if (data->hard_offsets[i] == 0x7f)
+			return 0;
+
+	count = sizeof(data->calib_offsets) / sizeof(int);
+
+	// 0x0x7fffffff is an invalid value for calib offsets
+	for (i = 0; i < count; i++)
+		if (data->calib_offsets[i] == 0x7fffffff)
+			return 0;
+
+	return 1;
 }
 
 /*
  * Geomagneticd
  */
 
-int offset_read(char *path, int *hard_offset, int *calib_offset, int *accuracy)
+int geomagneticd_magnetic_extrema_init(struct geomagneticd_data *data)
 {
-	char buf[100] = { 0 };
-	int fd;
-	int rc;
+	int count;
+	int i;
 
-	fd = open(path, O_RDONLY);
-	if (fd < 0)
-		return -1;
+	if (data == NULL)
+		return -EINVAL;
 
-	rc = read(fd, &buf, sizeof(buf));
-	close(fd);
-	if (rc <= 0)
-		return -1;
+	count = sizeof(data->calib_offsets) / sizeof(int);
 
-	rc = sscanf(buf, "%d %d %d %d %d %d %d",
-		&hard_offset[0], &hard_offset[1], &hard_offset[2],
-		&calib_offset[0], &calib_offset[1], &calib_offset[2], accuracy);
-
-	if (rc != 7)
-		return -1;
+	// Approximate the previous extrema from the calib offsets
+	for (i = 0; i < count; i++) {
+		data->magnetic_extrema[0][i] = -(data->calib_offsets[i] + 45) * 1000 + 5000;
+		data->magnetic_extrema[1][i] = (data->calib_offsets[i] + 45) * 1000 - 5000;
+	}
 
 	return 0;
 }
 
-int offset_write(char *path, int *hard_offset, int *calib_offset, int accuracy)
+int geomagneticd_magnetic_extrema(struct geomagneticd_data *data, int index,
+	int value)
 {
-	char buf[100] = { 0 };
-	int fd;
-	int rc;
+	if (data == NULL || index < 0 || index >= 3)
+		return -EINVAL;
 
-	sprintf(buf, "%d %d %d %d %d %d %d\n",
-		hard_offset[0], hard_offset[1], hard_offset[2],
-		calib_offset[0], calib_offset[1], calib_offset[2], accuracy);
+	if (value == 0)
+		return 0;
 
-	fd = open(path, O_WRONLY);
-	if (fd < 0)
-		return -1;
-
-	write(fd, buf, strlen(buf) + 1);
-	close(fd);
+	// Update the extrema from the current value if needed
+	if (value < data->magnetic_extrema[0][index] || data->magnetic_extrema[0][index] == 0)
+		data->magnetic_extrema[0][index] = value;
+	if (value > data->magnetic_extrema[1][index] || data->magnetic_extrema[1][index] == 0)
+		data->magnetic_extrema[1][index] = value;
 
 	return 0;
 }
 
-int yas_cfg_read(int *hard_offset, int *calib_offset, int *accuracy)
+int geomagneticd_calib_offsets(struct geomagneticd_data *data)
 {
-	char buf[100] = { 0 };
-	int fd;
+	int calib_offsets[3];
+	int offsets[2];
+	int update;
+	int count;
 	int rc;
+	int i;
 
-	fd = open("/data/system/yas.cfg", O_RDONLY);
-	if (fd < 0)
-		return -1;
+	if (data == NULL)
+		return -EINVAL;
 
-	rc = read(fd, &buf, sizeof(buf));
-	close(fd);
-	if (rc <= 0)
-		return -1;
+	// Calculating the offset is only meaningful when enough values were
+	// obtained. There is no need to calculate it too often either.
+	if (data->count % 10 != 0)
+		return 0;
 
-	rc = sscanf(buf, "%d,%d,%d,%d,%d,%d,%d",
-		&hard_offset[0], &hard_offset[1], &hard_offset[2],
-		&calib_offset[0], &calib_offset[1], &calib_offset[2], accuracy);
+	update = 0;
 
-	if (rc != 7)
-		return -1;
+	count = sizeof(data->calib_offsets) / sizeof(int);
+
+	// Calculate the calib offset for each axis to have values in [-45;45] uT
+	for (i = 0; i < count; i++) {
+		offsets[0] = data->magnetic_extrema[0][i] + 45 * 1000;
+		offsets[1] = data->magnetic_extrema[1][i] - 45 * 1000;
+		calib_offsets[i] = (offsets[0] + offsets[1]) / 2;
+
+		if (calib_offsets[i] != data->calib_offsets[i]) {
+			data->calib_offsets[i] = calib_offsets[i];
+			update = 1;
+		}
+	}
+
+	if (update) {
+		data->accuracy = 1;
+
+		rc = geomagneticd_offsets_write(data);
+		if (rc < 0) {
+			ALOGE("%s: Unable to write offsets", __func__);
+			return -1;
+		}
+
+		rc = geomagneticd_config_write(data);
+		if (rc < 0) {
+			ALOGE("%s: Unable to write config", __func__);
+			return -1;
+		}
+	}
 
 	return 0;
 }
 
-int yas_cfg_write(int *hard_offset, int *calib_offset, int accuracy)
+int geomagneticd_poll(struct geomagneticd_data *data)
 {
-	char buf[100] = { 0 };
-	int fd;
+	struct input_event input_event;
+	struct pollfd poll_fd;
 	int rc;
 
-	fd = open("/data/system/yas-backup.cfg", O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-	if (fd < 0)
+	if (data == NULL)
+		return -EINVAL;
+
+	if (data->input_fd < 0)
 		return -1;
 
-	sprintf(buf, "%d,%d,%d,%d,%d,%d,%d\n",
-		hard_offset[0], hard_offset[1], hard_offset[2],
-		calib_offset[0], calib_offset[1], calib_offset[2], accuracy);
+	memset(&poll_fd, 0, sizeof(poll_fd));
+	poll_fd.fd = data->input_fd;
+	poll_fd.events = POLLIN;
 
-	write(fd, buf, strlen(buf) + 1);
-	close(fd);
+	while (1) {
+		rc = poll(&poll_fd, 1, -1);
+		if (rc < 0) {
+			ALOGE("%s: poll failure", __func__);
+			goto error;
+		}
 
-	chmod("/data/system/yas-backup.cfg", 0644);
-	rename("/data/system/yas-backup.cfg", "/data/system/yas.cfg");
+		if (!(poll_fd.revents & POLLIN))
+			continue;
 
-	return 0;
+		poll_fd.revents = 0;
+
+		rc = read(data->input_fd, &input_event, sizeof(input_event));
+		if (rc < (int) sizeof(input_event)) {
+			ALOGE("%s: Unable to read input event", __func__);
+			continue;
+		}
+
+		// Update the extrema from the current value
+		if(input_event.type == EV_ABS) {
+			switch (input_event.code) {
+				case ABS_X:
+					geomagneticd_magnetic_extrema(data, 0, input_event.value);
+					break;
+				case ABS_Y:
+					geomagneticd_magnetic_extrema(data, 1, input_event.value);
+					break;
+				case ABS_Z:
+					geomagneticd_magnetic_extrema(data, 2, input_event.value);
+					break;
+			}
+		}
+
+		if (input_event.type == EV_SYN) {
+			// Sometimes, the hard offsets cannot be read at startup
+			// so we need to do it now
+			if (!geomagneticd_offsets_check(data)) {
+				rc = geomagneticd_offsets_read(data);
+				if (rc < 0) {
+					ALOGE("%s: Unable to read offsets", __func__);
+					continue;
+				}
+
+				// Most likely, the calib offset will be invalid
+				if (geomagneticd_offsets_check(data)) {
+					data->accuracy = 1;
+					geomagneticd_magnetic_extrema_init(data);
+				}
+
+				rc = geomagneticd_config_write(data);
+				if (rc < 0) {
+					ALOGE("%s: Unable to write config", __func__);
+					continue;
+				}
+			}
+
+			data->count++;
+
+			rc = geomagneticd_calib_offsets(data);
+			if (rc < 0) {
+				ALOGE("%s: Unable to calib offsets", __func__);
+				continue;
+			}
+		}
+	}
+
+	rc = 0;
+	goto complete;
+
+error:
+	rc = -1;
+
+complete:
+	return rc;
 }
 
 int main(int argc, char *argv[])
 {
-	struct input_event event;
-
+	struct geomagneticd_data *geomagneticd_data = NULL;
 	char path[PATH_MAX] = { 0 };
-	char path_offset[PATH_MAX] = { 0 };
-
-	int offset_fd;
-	int input_fd;
-
-	int max_coeff[3] = { 40, 45, 45 };
-	int hard_offset[3] = { 0 };
-	int calib_offset[3] = { 0 };
-	int accuracy = 0;
-
-	int axis_min[3] = { 0 };
-	int axis_max[3] = { 0 };
-	int axis_calib[3] = { 0 };
-
-	int x, y, z;
-
+	int input_fd = -1;
 	int rc;
-	int i;
 
-	/*
-	 * Wait for something to be ready and properly report the hard coeff.
-	 * Without that, the hard coeff are reported to be around 127.
-	 */
-
-	ALOGD("Geomagneticd start");
+	geomagneticd_data = (struct geomagneticd_data *)
+		calloc(1, sizeof(struct geomagneticd_data));
 
 	input_fd = input_open("geomagnetic_raw");
-	if (input_fd < 0)
-		goto sleep_loop;
-
-	rc = sysfs_path_prefix("geomagnetic_raw", &path);
-	if (rc < 0)
-		goto sleep_loop;
-
-	snprintf(path_offset, PATH_MAX, "%s/offsets", path);
-
-	for (i=0 ; i < 3 ; i++) {
-		axis_min[i] = 0;
-		axis_max[i] = 0;
-		calib_offset[i] = 0;
+	if (input_fd < 0) {
+		ALOGE("%s: Unable to open input", __func__);
+		goto error;
 	}
 
-	ALOGD("Reading config");
+	rc = sysfs_path_prefix("geomagnetic_raw", (char *) &path);
+	if (rc < 0 || path[0] == '\0') {
+		ALOGE("%s: Unable to open sysfs", __func__);
+		goto error;
+	}
 
-	rc = yas_cfg_read(&hard_offset, &calib_offset, &accuracy);
-	if (rc == 0) {
-		ALOGD("Setting initial offsets: %d %d %d, %d %d %d", hard_offset[0], hard_offset[1], hard_offset[2], calib_offset[0], calib_offset[1], calib_offset[2]);
+	snprintf(geomagneticd_data->path_offsets, PATH_MAX, "%s/offsets", path);
 
-		offset_write(path_offset, &hard_offset, &calib_offset, accuracy);
+	geomagneticd_data->input_fd = input_fd;
 
-		for (i=0 ; i < 3 ; i++) {
-			axis_min[i] = - calib_offset[i] - max_coeff[i] * 1000;
-			axis_max[i] = calib_offset[i] + max_coeff[i] * 1000;
-			axis_calib[i] = calib_offset[i];
+	geomagneticd_offsets_init(geomagneticd_data);
+
+	// Attempt to read the offsets from the config
+	rc = geomagneticd_config_read(geomagneticd_data);
+	if (rc < 0 || !geomagneticd_offsets_check(geomagneticd_data)) {
+		// Read the offsets from the driver
+		rc = geomagneticd_offsets_read(geomagneticd_data);
+		if (rc < 0) {
+			ALOGE("%s: Unable to read offsets", __func__);
+			goto error;
+		}
+
+		// Most likely, the calib offset will be invalid and the hard
+		// offset may be invalid as well
+		if (geomagneticd_offsets_check(geomagneticd_data)) {
+			geomagneticd_data->accuracy = 1;
+			geomagneticd_magnetic_extrema_init(geomagneticd_data);
 		}
 	} else {
-		offset_read(path_offset, &hard_offset, &calib_offset, &accuracy);
-		ALOGD("Reading initial offsets: %d %d %d", hard_offset[0], hard_offset[1], hard_offset[2]);
+		// Get the magnetic extrema from the config's offsets
+		geomagneticd_magnetic_extrema_init(geomagneticd_data);
 
-		for (i=0 ; i < 3 ; i++) {
-			axis_min[i] = 0;
-			axis_max[i] = 0;
-			calib_offset[i] = 0;
+		rc = geomagneticd_offsets_write(geomagneticd_data);
+		if (rc < 0) {
+			ALOGE("%s: Unable to write offsets", __func__);
+			goto error;
 		}
 	}
 
-loop:
-	while (1) {
-		read(input_fd, &event, sizeof(event));
+	rc = geomagneticd_poll(geomagneticd_data);
+	if (rc < 0)
+		goto error;
 
-		if (event.type == EV_SYN) {
-			for (i=0 ; i < 3 ; i++) {
-				if (-axis_min[i] < axis_max[i]) {
-					axis_calib[i] = axis_max[i] - max_coeff[i] * 1000;
-				} else {
-					axis_calib[i] = axis_min[i] + max_coeff[i] * 1000;
-				}
+	rc = 0;
+	goto complete;
 
-				axis_calib[i] = axis_calib[i] < 0 ? -axis_calib[i] : axis_calib[i];
-
-				if (axis_calib[i] != calib_offset[i]) {
-					calib_offset[i] = axis_calib[i];
-					accuracy = 1;
-
-					offset_write(path_offset, &hard_offset, &calib_offset, accuracy);
-					yas_cfg_write(&hard_offset, &calib_offset, accuracy);
-				}
-
-//				printf("axis_calib[%d]=%d\n", i, axis_calib[i]);
-			}
-
-			if (hard_offset[0] == 127 && hard_offset[1] == 127 && hard_offset[2] == 127) {
-				offset_read(path_offset, &hard_offset, &calib_offset, &accuracy);
-
-				if (hard_offset[0] != 127 || hard_offset[1] != 127 || hard_offset[2] != 127) {
-					ALOGD("Reading offsets: %d %d %d", hard_offset[0], hard_offset[1], hard_offset[2]);
-					yas_cfg_write(&hard_offset, &calib_offset, accuracy);
-				}
-			}
-		}
-
-		if(event.type == EV_ABS) {
-			switch (event.code) {
-				case ABS_X:
-					x = event.value;
-					if (x < axis_min[0])
-						axis_min[0] = x;
-					if (x > axis_max[0])
-						axis_max[0] = x;
-					break;
-				case ABS_Y:
-					y = event.value;
-					if (y < axis_min[1])
-						axis_min[1] = y;
-					if (y > axis_max[1])
-						axis_max[1] = y;
-					break;
-				case ABS_Z:
-					z = event.value;
-					if (z < axis_min[2])
-						axis_min[2] = z;
-					if (z > axis_max[2])
-						axis_max[2] = z;
-					break;
-			}
-		}
-	}
-
-sleep_loop:
-	while (1) {
+error:
+	while (1)
 		sleep(3600);
-	}
 
-	return 0;
+	rc = 1;
+
+complete:
+	if (input_fd >= 0)
+		close(input_fd);
+
+	if (geomagneticd_data != NULL)
+		free(geomagneticd_data);
+
+	return rc;
 }

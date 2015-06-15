@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <poll.h>
-
+#include <sys/select.h>
 #include <hardware/sensors.h>
 #include <hardware/hardware.h>
 
@@ -35,8 +35,8 @@
  */
 
 struct sensor_t piranha_sensors[] = {
-	{ "BMA254 Acceleration Sensor", "Bosch", 1, SENSOR_TYPE_ACCELEROMETER,
-		SENSOR_TYPE_ACCELEROMETER, 19.6f, 0.0383f, 0.13f, 10000, {}, },
+	{ "BMA250 Acceleration Sensor", "Bosch", 1, SENSOR_TYPE_ACCELEROMETER,
+		SENSOR_TYPE_ACCELEROMETER, 2 * GRAVITY_EARTH, GRAVITY_EARTH / 256.0f, 0.13f, 10000, {}, },
 	{ "YAS530 Magnetic Sensor", "Yamaha", 1, SENSOR_TYPE_MAGNETIC_FIELD,
 		SENSOR_TYPE_MAGNETIC_FIELD, 800.0f, 0.3f, 4.0f, 10000, {}, },
 	{ "YAS Orientation Sensor", "Yamaha", 1, SENSOR_TYPE_ORIENTATION,
@@ -46,10 +46,10 @@ struct sensor_t piranha_sensors[] = {
 		SENSOR_TYPE_LIGHT, 0.0f, 0.0f, 0.0f, 0, {}, },
 #endif
 #ifdef TARGET_DEVICE_P3100
-	{ "GP2A Light Sensor", "SHARP", 1, SENSOR_TYPE_LIGHT,
-		SENSOR_TYPE_LIGHT, 0.0f, 0.0f, 0.0f, 0, {}, },
-	{ "GP2A Proximity Sensor", "SHARP", 1, SENSOR_TYPE_PROXIMITY,
-		SENSOR_TYPE_PROXIMITY, 5.0f, 0.0f, 0.0f, 0, {}, },
+	{ "GP2A Light Sensor", "Sharp", 1, SENSOR_TYPE_LIGHT,
+		SENSOR_TYPE_LIGHT, 10240.0f, 1.0f, 0.75f, 0, {}, },
+	{ "GP2A Proximity Sensor", "Sharp", 1, SENSOR_TYPE_PROXIMITY,
+		SENSOR_TYPE_PROXIMITY, 5.0f, 5.0f, 0.75f, 0, {}, },
 #endif
 };
 
@@ -57,7 +57,7 @@ int piranha_sensors_count = sizeof(piranha_sensors) / sizeof(struct sensor_t);
 
 struct piranha_sensors_handlers *piranha_sensors_handlers[] = {
 	&bma250,
-	&yas530c,
+	&yas530,
 	&yas_orientation,
 #ifdef TARGET_DEVICE_P5100
 	&bh1721,
@@ -75,7 +75,8 @@ int piranha_sensors_handlers_count = sizeof(piranha_sensors_handlers) /
  * Piranha Sensors
  */
 
-int piranha_sensors_activate(struct sensors_poll_device_t *dev, int handle, int enabled)
+int piranha_sensors_activate(struct sensors_poll_device_t *dev, int handle,
+	int enabled)
 {
 	struct piranha_sensors_device *device;
 	int i;
@@ -90,22 +91,32 @@ int piranha_sensors_activate(struct sensors_poll_device_t *dev, int handle, int 
 	if (device->handlers == NULL || device->handlers_count <= 0)
 		return -EINVAL;
 
-	for (i=0 ; i < device->handlers_count ; i++) {
+	for (i = 0; i < device->handlers_count; i++) {
 		if (device->handlers[i] == NULL)
 			continue;
 
 		if (device->handlers[i]->handle == handle) {
-			if (enabled && device->handlers[i]->activate != NULL)
-				return device->handlers[i]->activate(device->handlers[i]);
-			else if (!enabled && device->handlers[i]->deactivate != NULL)
-				return device->handlers[i]->deactivate(device->handlers[i]);
+			if (enabled && device->handlers[i]->activate != NULL) {
+				device->handlers[i]->needed |= PIRANHA_SENSORS_NEEDED_API;
+				if (device->handlers[i]->needed == PIRANHA_SENSORS_NEEDED_API)
+					return device->handlers[i]->activate(device->handlers[i]);
+				else
+					return 0;
+			} else if (!enabled && device->handlers[i]->deactivate != NULL) {
+				device->handlers[i]->needed &= ~PIRANHA_SENSORS_NEEDED_API;
+				if (device->handlers[i]->needed == 0)
+					return device->handlers[i]->deactivate(device->handlers[i]);
+				else
+					return 0;
+			}
 		}
 	}
 
 	return -1;
 }
 
-int piranha_sensors_set_delay(struct sensors_poll_device_t *dev, int handle, int64_t ns)
+int piranha_sensors_set_delay(struct sensors_poll_device_t *dev, int handle,
+	int64_t ns)
 {
 	struct piranha_sensors_device *device;
 	int i;
@@ -120,12 +131,12 @@ int piranha_sensors_set_delay(struct sensors_poll_device_t *dev, int handle, int
 	if (device->handlers == NULL || device->handlers_count <= 0)
 		return -EINVAL;
 
-	for (i=0 ; i < device->handlers_count ; i++) {
+	for (i = 0; i < device->handlers_count; i++) {
 		if (device->handlers[i] == NULL)
 			continue;
 
 		if (device->handlers[i]->handle == handle && device->handlers[i]->set_delay != NULL)
-			return device->handlers[i]->set_delay(device->handlers[i], ns);
+			return device->handlers[i]->set_delay(device->handlers[i], (long int) ns);
 	}
 
 	return 0;
@@ -153,15 +164,15 @@ int piranha_sensors_poll(struct sensors_poll_device_t *dev,
 	n = 0;
 
 	do {
-		poll_rc = poll(device->poll_fds, device->poll_fds_count, PIRANHA_POLL_DELAY);
+		poll_rc = poll(device->poll_fds, device->poll_fds_count, n > 0 ? 0 : -1);
 		if (poll_rc < 0)
 			return -1;
 
-		for (i=0 ; i < device->poll_fds_count ; i++) {
+		for (i = 0; i < device->poll_fds_count; i++) {
 			if (!(device->poll_fds[i].revents & POLLIN))
 				continue;
 
-			for (j=0 ; j < device->handlers_count ; j++) {
+			for (j = 0; j < device->handlers_count; j++) {
 				if (device->handlers[j] == NULL || device->handlers[j]->poll_fd != device->poll_fds[i].fd || device->handlers[j]->get_data == NULL)
 					continue;
 
@@ -174,9 +185,6 @@ int piranha_sensors_poll(struct sensors_poll_device_t *dev,
 					count--;
 				}
 			}
-
-			if (count <= 0)
-				break;
 		}
 	} while ((poll_rc > 0 || n < 1) && count > 0);
 
@@ -202,7 +210,7 @@ int piranha_sensors_close(hw_device_t *device)
 	if (piranha_sensors_device->poll_fds != NULL)
 		free(piranha_sensors_device->poll_fds);
 
-	for (i=0 ; i < piranha_sensors_device->handlers_count ; i++) {
+	for (i = 0; i < piranha_sensors_device->handlers_count; i++) {
 		if (piranha_sensors_device->handlers[i] == NULL || piranha_sensors_device->handlers[i]->deinit == NULL)
 			continue;
 
@@ -240,7 +248,7 @@ int piranha_sensors_open(const struct hw_module_t* module, const char *id,
 		calloc(1, piranha_sensors_handlers_count * sizeof(struct pollfd));
 
 	p = 0;
-	for (i=0 ; i < piranha_sensors_handlers_count ; i++) {
+	for (i = 0; i < piranha_sensors_handlers_count; i++) {
 		if (piranha_sensors_handlers[i] == NULL || piranha_sensors_handlers[i]->init == NULL)
 			continue;
 

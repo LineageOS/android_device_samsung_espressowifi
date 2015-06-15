@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <math.h>
+#include <sys/types.h>
 #include <linux/ioctl.h>
 #include <linux/input.h>
 
@@ -31,11 +33,6 @@
 
 #include "piranha_sensors.h"
 
-#define FLAG_X		(1 << 0)
-#define FLAG_Y		(1 << 1)
-#define FLAG_Z		(1 << 2)
-#define FLAG_ALL	(FLAG_X | FLAG_Y | FLAG_Z)
-
 struct bma250_data {
 	char path_enable[PATH_MAX];
 	char path_delay[PATH_MAX];
@@ -43,7 +40,8 @@ struct bma250_data {
 	sensors_vec_t acceleration;
 };
 
-int bma250_init(struct piranha_sensors_handlers *handlers, struct piranha_sensors_device *device)
+int bma250_init(struct piranha_sensors_handlers *handlers,
+	struct piranha_sensors_device *device)
 {
 	struct bma250_data *data = NULL;
 	char path[PATH_MAX] = { 0 };
@@ -54,6 +52,8 @@ int bma250_init(struct piranha_sensors_handlers *handlers, struct piranha_sensor
 
 	if (handlers == NULL)
 		return -EINVAL;
+
+	data = (struct bma250_data *) calloc(1, sizeof(struct bma250_data));
 
 	input_fd = input_open("accelerometer");
 	if (input_fd < 0) {
@@ -67,8 +67,6 @@ int bma250_init(struct piranha_sensors_handlers *handlers, struct piranha_sensor
 		goto error;
 	}
 
-	data = (struct bma250_data *) calloc(1, sizeof(struct bma250_data));
-
 	snprintf(data->path_enable, PATH_MAX, "%s/enable", path);
 	snprintf(data->path_delay, PATH_MAX, "%s/delay", path);
 
@@ -78,11 +76,11 @@ int bma250_init(struct piranha_sensors_handlers *handlers, struct piranha_sensor
 	return 0;
 
 error:
-	if (input_fd >= 0)
-		close(input_fd);
-
 	if (data != NULL)
 		free(data);
+
+	if (input_fd >= 0)
+		close(input_fd);
 
 	handlers->poll_fd = -1;
 	handlers->data = NULL;
@@ -92,22 +90,17 @@ error:
 
 int bma250_deinit(struct piranha_sensors_handlers *handlers)
 {
-	int input_fd;
-
 	ALOGD("%s(%p)", __func__, handlers);
 
 	if (handlers == NULL)
 		return -EINVAL;
 
-	input_fd = handlers->poll_fd;
-	if (input_fd >= 0)
-		close(input_fd);
-
+	if (handlers->poll_fd >= 0)
+		close(handlers->poll_fd);
 	handlers->poll_fd = -1;
 
 	if (handlers->data != NULL)
 		free(handlers->data);
-
 	handlers->data = NULL;
 
 	return 0;
@@ -116,8 +109,7 @@ int bma250_deinit(struct piranha_sensors_handlers *handlers)
 int bma250_activate(struct piranha_sensors_handlers *handlers)
 {
 	struct bma250_data *data;
-	char enable[] = "1\n";
-	int fd;
+	int rc;
 
 	ALOGD("%s(%p)", __func__, handlers);
 
@@ -126,14 +118,11 @@ int bma250_activate(struct piranha_sensors_handlers *handlers)
 
 	data = (struct bma250_data *) handlers->data;
 
-	fd = open(data->path_enable, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open enable path", __func__);
+	rc = sysfs_value_write(data->path_enable, 1);
+	if (rc < 0) {
+		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;
 	}
-
-	write(fd, &enable, sizeof(enable));
-	close(fd);
 
 	handlers->activated = 1;
 
@@ -143,8 +132,7 @@ int bma250_activate(struct piranha_sensors_handlers *handlers)
 int bma250_deactivate(struct piranha_sensors_handlers *handlers)
 {
 	struct bma250_data *data;
-	char enable[] = "0\n";
-	int fd;
+	int rc;
 
 	ALOGD("%s(%p)", __func__, handlers);
 
@@ -153,60 +141,47 @@ int bma250_deactivate(struct piranha_sensors_handlers *handlers)
 
 	data = (struct bma250_data *) handlers->data;
 
-	fd = open(data->path_enable, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open enable path", __func__);
+	rc = sysfs_value_write(data->path_enable, 0);
+	if (rc < 0) {
+		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;
 	}
 
-	write(fd, &enable, sizeof(enable));
-	close(fd);
-
-	handlers->activated = 0;
+	handlers->activated = 1;
 
 	return 0;
 }
 
-int bma250_set_delay(struct piranha_sensors_handlers *handlers, int64_t delay)
+int bma250_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
 {
 	struct bma250_data *data;
-	char *value = NULL;
 	int d;
-	int c;
-	int fd;
+	int rc;
 
-//	ALOGD("%s(%p, %ld)", __func__, handlers, (long int) delay);
+	ALOGD("%s(%p, %ld)", __func__, handlers, delay);
 
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
 	data = (struct bma250_data *) handlers->data;
 
-	if (delay < 1000000)
-		d = 0;
+	if (delay < 10000000)
+		d = 10;
 	else
-		d = (int) (delay / 1000000);
+		d = delay / 1000000;
 
-	c = asprintf(&value, "%d\n", d);
-
-	fd = open(data->path_delay, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open delay path", __func__);
+	rc = sysfs_value_write(data->path_delay, d);
+	if (rc < 0) {
+		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;
 	}
-
-	write(fd, value, c);
-	close(fd);
-
-	if (value != NULL)
-		free(value);
 
 	return 0;
 }
 
-float bma250_acceleration(int value)
+float bma250_convert(int value)
 {
-	return (float) (value * GRAVITY_EARTH) / 256.0f;
+	return value * (GRAVITY_EARTH / 256.0f);
 }
 
 int bma250_get_data(struct piranha_sensors_handlers *handlers,
@@ -215,8 +190,9 @@ int bma250_get_data(struct piranha_sensors_handlers *handlers,
 	struct bma250_data *data;
 	struct input_event input_event;
 	int input_fd;
-	int flag;
 	int rc;
+
+//	ALOGD("%s(%p, %p)", __func__, handlers, event);
 
 	if (handlers == NULL || handlers->data == NULL || event == NULL)
 		return -EINVAL;
@@ -227,6 +203,7 @@ int bma250_get_data(struct piranha_sensors_handlers *handlers,
 	if (input_fd < 0)
 		return -EINVAL;
 
+	memset(event, 0, sizeof(struct sensors_event_t));
 	event->version = sizeof(struct sensors_event_t);
 	event->sensor = handlers->handle;
 	event->type = handlers->handle;
@@ -234,46 +211,35 @@ int bma250_get_data(struct piranha_sensors_handlers *handlers,
 	event->acceleration.x = data->acceleration.x;
 	event->acceleration.y = data->acceleration.y;
 	event->acceleration.z = data->acceleration.z;
-	event->acceleration.status = SENSOR_STATUS_ACCURACY_MEDIUM;
 
-	flag = 0;
-	while ((flag & FLAG_ALL) != FLAG_ALL) {
+	do {
 		rc = read(input_fd, &input_event, sizeof(input_event));
-		if (rc < (int) sizeof(input_event)) {
-			if (flag & FLAG_ALL)
-				break;
-			else
-				return -1;
+		if (rc < (int) sizeof(input_event))
+			break;
+
+		if (input_event.type == EV_ABS) {
+			switch (input_event.code) {
+				case ABS_X:
+					event->acceleration.x = bma250_convert(input_event.value);
+					break;
+				case ABS_Y:
+					event->acceleration.y = bma250_convert(input_event.value);
+					break;
+				case ABS_Z:
+					event->acceleration.z = bma250_convert(input_event.value);
+					break;
+				default:
+					continue;
+			}
+		} else if (input_event.type == EV_SYN) {
+			if (input_event.code == SYN_REPORT)
+				event->timestamp = input_timestamp(&input_event);
 		}
+	} while (input_event.type != EV_SYN);
 
-		if (input_event.type != EV_ABS)
-			continue;
-
-		switch (input_event.code) {
-			case ABS_X:
-				flag |= FLAG_X;
-				event->acceleration.x = bma250_acceleration(input_event.value);
-				break;
-			case ABS_Y:
-				flag |= FLAG_Y;
-				event->acceleration.y = bma250_acceleration(input_event.value);
-				break;
-			case ABS_Z:
-				flag |= FLAG_Z;
-				event->acceleration.z = bma250_acceleration(input_event.value);
-				break;
-			default:
-				continue;
-		}
-		event->timestamp = input_timestamp(&input_event);
-	}
-
-	if (data->acceleration.x != event->acceleration.x)
-		data->acceleration.x = event->acceleration.x;
-	if (data->acceleration.y != event->acceleration.y)
-		data->acceleration.y = event->acceleration.y;
-	if (data->acceleration.z != event->acceleration.z)
-		data->acceleration.z = event->acceleration.z;
+	data->acceleration.x = event->acceleration.x;
+	data->acceleration.y = event->acceleration.y;
+	data->acceleration.z = event->acceleration.z;
 
 	return 0;
 }
@@ -288,6 +254,7 @@ struct piranha_sensors_handlers bma250 = {
 	.set_delay = bma250_set_delay,
 	.get_data = bma250_get_data,
 	.activated = 0,
+	.needed = 0,
 	.poll_fd = -1,
 	.data = NULL,
 };
