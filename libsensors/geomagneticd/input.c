@@ -25,10 +25,10 @@
 #include <linux/input.h>
 #include <linux/uinput.h>
 
-#define LOG_TAG "orientationd"
+#define LOG_TAG "geomagneticd"
 #include <utils/Log.h>
 
-#include "orientationd.h"
+#include "geomagneticd.h"
 
 void input_event_set(struct input_event *event, int type, int code, int value)
 {

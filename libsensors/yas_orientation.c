@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <stddef.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <math.h>
+#include <sys/types.h>
 #include <linux/ioctl.h>
 #include <linux/input.h>
 
@@ -32,37 +33,44 @@
 
 #include "piranha_sensors.h"
 
-#define FLAG_X		(1 << 0)
-#define FLAG_Y		(1 << 1)
-#define FLAG_Z		(1 << 2)
-#define FLAG_ALL	(FLAG_X | FLAG_Y | FLAG_Z)
-
 struct yas_orientation_data {
-	struct piranha_sensors_device *device;
+	struct piranha_sensors_handlers *acceleration_sensor;
+	struct piranha_sensors_handlers *magnetic_sensor;
 
 	char path_enable[PATH_MAX];
 	char path_delay[PATH_MAX];
-
-	char acc_path_enable[PATH_MAX];
-	char acc_path_delay[PATH_MAX];
-
-	char mag_path_enable[PATH_MAX];
-	char mag_path_delay[PATH_MAX];
-
-	sensors_vec_t orientation;
 };
 
-int yas_orientation_init(struct piranha_sensors_handlers *handlers, struct piranha_sensors_device *device)
+int yas_orientation_init(struct piranha_sensors_handlers *handlers,
+	struct piranha_sensors_device *device)
 {
 	struct yas_orientation_data *data = NULL;
 	char path[PATH_MAX] = { 0 };
 	int input_fd = -1;
 	int rc;
+	int i;
 
 	ALOGD("%s(%p, %p)", __func__, handlers, device);
 
-	if (handlers == NULL || device == NULL)
+	if (handlers == NULL)
 		return -EINVAL;
+
+	data = (struct yas_orientation_data *) calloc(1, sizeof(struct yas_orientation_data));
+
+	for (i = 0; i < device->handlers_count; i++) {
+		if (device->handlers[i] == NULL)
+			continue;
+
+		if (device->handlers[i]->handle == SENSOR_TYPE_ACCELEROMETER)
+			data->acceleration_sensor = device->handlers[i];
+		else if (device->handlers[i]->handle == SENSOR_TYPE_MAGNETIC_FIELD)
+			data->magnetic_sensor = device->handlers[i];
+	}
+
+	if (data->acceleration_sensor == NULL || data->magnetic_sensor == NULL) {
+		ALOGE("%s: Missing sensors for orientation", __func__);
+		goto error;
+	}
 
 	input_fd = input_open("orientation");
 	if (input_fd < 0) {
@@ -76,33 +84,8 @@ int yas_orientation_init(struct piranha_sensors_handlers *handlers, struct piran
 		goto error;
 	}
 
-	data = (struct yas_orientation_data *) calloc(1, sizeof(struct yas_orientation_data));
-	data->device = device;
-
 	snprintf(data->path_enable, PATH_MAX, "%s/enable", path);
 	snprintf(data->path_delay, PATH_MAX, "%s/delay", path);
-
-	memset(&path, 0, sizeof(path));
-
-	rc = sysfs_path_prefix("accelerometer", (char *) &path);
-	if (rc < 0 || path[0] == '\0') {
-		ALOGE("%s: Unable to open sysfs", __func__);
-		goto error;
-	}
-
-	snprintf(data->acc_path_enable, PATH_MAX, "%s/enable", path);
-	snprintf(data->acc_path_delay, PATH_MAX, "%s/delay", path);
-
-	memset(&path, 0, sizeof(path));
-
-	rc = sysfs_path_prefix("geomagnetic", (char *) &path);
-	if (rc < 0 || path[0] == '\0') {
-		ALOGE("%s: Unable to open sysfs", __func__);
-		goto error;
-	}
-
-	snprintf(data->mag_path_enable, PATH_MAX, "%s/enable", path);
-	snprintf(data->mag_path_delay, PATH_MAX, "%s/delay", path);
 
 	handlers->poll_fd = input_fd;
 	handlers->data = (void *) data;
@@ -110,11 +93,11 @@ int yas_orientation_init(struct piranha_sensors_handlers *handlers, struct piran
 	return 0;
 
 error:
-	if (input_fd >= 0)
-		close(input_fd);
-
 	if (data != NULL)
 		free(data);
+
+	if (input_fd >= 0)
+		close(input_fd);
 
 	handlers->poll_fd = -1;
 	handlers->data = NULL;
@@ -124,22 +107,17 @@ error:
 
 int yas_orientation_deinit(struct piranha_sensors_handlers *handlers)
 {
-	int input_fd;
-
 	ALOGD("%s(%p)", __func__, handlers);
 
 	if (handlers == NULL)
 		return -EINVAL;
 
-	input_fd = handlers->poll_fd;
-	if (input_fd >= 0)
-		close(input_fd);
-
+	if (handlers->poll_fd >= 0)
+		close(handlers->poll_fd);
 	handlers->poll_fd = -1;
 
 	if (handlers->data != NULL)
 		free(handlers->data);
-
 	handlers->data = NULL;
 
 	return 0;
@@ -148,8 +126,6 @@ int yas_orientation_deinit(struct piranha_sensors_handlers *handlers)
 int yas_orientation_activate(struct piranha_sensors_handlers *handlers)
 {
 	struct yas_orientation_data *data;
-	char enable[] = "1\n";
-	int fd;
 	int rc;
 
 	ALOGD("%s(%p)", __func__, handlers);
@@ -159,32 +135,22 @@ int yas_orientation_activate(struct piranha_sensors_handlers *handlers)
 
 	data = (struct yas_orientation_data *) handlers->data;
 
-	fd = open(data->acc_path_enable, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open enable path", __func__);
+	if (data->acceleration_sensor == NULL || data->magnetic_sensor == NULL)
+		return -1;
+
+	data->acceleration_sensor->needed |= PIRANHA_SENSORS_NEEDED_ORIENTATION;
+	if (data->acceleration_sensor->needed == PIRANHA_SENSORS_NEEDED_ORIENTATION)
+		data->acceleration_sensor->activate(data->acceleration_sensor);
+
+	data->magnetic_sensor->needed |= PIRANHA_SENSORS_NEEDED_ORIENTATION;
+	if (data->magnetic_sensor->needed == PIRANHA_SENSORS_NEEDED_ORIENTATION)
+		data->magnetic_sensor->activate(data->magnetic_sensor);
+
+	rc = sysfs_value_write(data->path_enable, 1);
+	if (rc < 0) {
+		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;
 	}
-
-	write(fd, &enable, sizeof(enable));
-	close(fd);
-
-	fd = open(data->mag_path_enable, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open enable path", __func__);
-		return -1;
-	}
-
-	write(fd, &enable, sizeof(enable));
-	close(fd);
-
-	fd = open(data->path_enable, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open enable path", __func__);
-		return -1;
-	}
-
-	write(fd, &enable, sizeof(enable));
-	close(fd);
 
 	handlers->activated = 1;
 
@@ -194,9 +160,7 @@ int yas_orientation_activate(struct piranha_sensors_handlers *handlers)
 int yas_orientation_deactivate(struct piranha_sensors_handlers *handlers)
 {
 	struct yas_orientation_data *data;
-	char enable[] = "0\n";
-	int fd;
-	int i;
+	int rc;
 
 	ALOGD("%s(%p)", __func__, handlers);
 
@@ -205,171 +169,114 @@ int yas_orientation_deactivate(struct piranha_sensors_handlers *handlers)
 
 	data = (struct yas_orientation_data *) handlers->data;
 
-	fd = open(data->path_enable, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open enable path", __func__);
+	if (data->acceleration_sensor == NULL || data->magnetic_sensor == NULL)
+		return -1;
+
+	data->acceleration_sensor->needed &= ~(PIRANHA_SENSORS_NEEDED_ORIENTATION);
+	if (data->acceleration_sensor->needed == 0)
+		data->acceleration_sensor->deactivate(data->acceleration_sensor);
+
+	data->magnetic_sensor->needed &= ~(PIRANHA_SENSORS_NEEDED_ORIENTATION);
+	if (data->magnetic_sensor->needed == 0)
+		data->magnetic_sensor->deactivate(data->magnetic_sensor);
+
+	rc = sysfs_value_write(data->path_enable, 0);
+	if (rc < 0) {
+		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;
 	}
 
-	write(fd, &enable, sizeof(enable));
-	close(fd);
-
-	for (i=0 ; i < data->device->handlers_count ; i++) {
-		if (data->device->handlers[i] == NULL)
-			continue;
-
-		if (data->device->handlers[i]->handle == SENSOR_TYPE_ACCELEROMETER && !data->device->handlers[i]->activated) {
-			fd = open(data->acc_path_enable, O_WRONLY);
-			if (fd < 0) {
-				ALOGE("%s: Unable to open enable path", __func__);
-				continue;
-			}
-
-			write(fd, &enable, sizeof(enable));
-			close(fd);
-		} else if (data->device->handlers[i]->handle == SENSOR_TYPE_MAGNETIC_FIELD && !data->device->handlers[i]->activated) {
-			fd = open(data->mag_path_enable, O_WRONLY);
-			if (fd < 0) {
-				ALOGE("%s: Unable to open enable path", __func__);
-				continue;
-			}
-
-			write(fd, &enable, sizeof(enable));
-			close(fd);
-		}
-	}
-
-	handlers->activated = 0;
+	handlers->activated = 1;
 
 	return 0;
 }
 
-int yas_orientation_set_delay(struct piranha_sensors_handlers *handlers, int64_t delay)
+int yas_orientation_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
 {
 	struct yas_orientation_data *data;
-	char *value = NULL;
 	int d;
-	int c;
-	int fd;
 	int rc;
 
-//	ALOGD("%s(%p, %ld)", __func__, handlers, (long int) delay);
+	ALOGD("%s(%p, %ld)", __func__, handlers, delay);
 
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
 	data = (struct yas_orientation_data *) handlers->data;
 
-	if (delay < 1000000)
-		d = 0;
+	if (data->acceleration_sensor == NULL || data->magnetic_sensor == NULL)
+		return -1;
+
+	if (data->acceleration_sensor->needed == PIRANHA_SENSORS_NEEDED_ORIENTATION)
+		data->acceleration_sensor->set_delay(data->acceleration_sensor, delay);
+
+	if (data->magnetic_sensor->needed == PIRANHA_SENSORS_NEEDED_ORIENTATION)
+		data->magnetic_sensor->set_delay(data->magnetic_sensor, delay);
+
+	if (delay < 10000000)
+		d = 10;
 	else
-		d = (int) (delay / 1000000);
+		d = delay / 1000000;
 
-	c = asprintf(&value, "%d\n", d);
-
-	fd = open(data->acc_path_delay, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open delay path", __func__);
+	rc = sysfs_value_write(data->path_delay, d);
+	if (rc < 0) {
+		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;
 	}
-
-	write(fd, value, c);
-	close(fd);
-
-	fd = open(data->mag_path_delay, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open delay path", __func__);
-		return -1;
-	}
-
-	write(fd, value, c);
-	close(fd);
-
-	fd = open(data->path_delay, O_WRONLY);
-	if (fd < 0) {
-		ALOGE("%s: Unable to open delay path", __func__);
-		return -1;
-	}
-
-	write(fd, value, c);
-	close(fd);
-
-	if (value != NULL)
-		free(value);
 
 	return 0;
 }
 
-float yas_orientation_orientation(int value)
+float yas_orientation_convert(int value)
 {
-	return (float) value / 1000.f;
+	return value / 1000.0f;
 }
 
 int yas_orientation_get_data(struct piranha_sensors_handlers *handlers,
 	struct sensors_event_t *event)
 {
-	struct yas_orientation_data *data;
 	struct input_event input_event;
 	int input_fd;
-	int flag;
 	int rc;
 
-	if (handlers == NULL || handlers->data == NULL || event == NULL)
-		return -EINVAL;
+//	ALOGD("%s(%p, %p)", __func__, handlers, event);
 
-	data = (struct yas_orientation_data *) handlers->data;
+	if (handlers == NULL || event == NULL)
+		return -EINVAL;
 
 	input_fd = handlers->poll_fd;
 	if (input_fd < 0)
 		return -EINVAL;
 
+	memset(event, 0, sizeof(struct sensors_event_t));
 	event->version = sizeof(struct sensors_event_t);
 	event->sensor = handlers->handle;
 	event->type = handlers->handle;
 
-	event->orientation.x = data->orientation.x;
-	event->orientation.y = data->orientation.y;
-	event->orientation.z = data->orientation.z;
-	event->orientation.status = SENSOR_STATUS_ACCURACY_MEDIUM;
-
-	flag = 0;
-	while ((flag & FLAG_ALL) != FLAG_ALL) {
+	do {
 		rc = read(input_fd, &input_event, sizeof(input_event));
-		if (rc < (int) sizeof(input_event)) {
-			if (flag & FLAG_ALL)
-				break;
-			else
-				return -EINVAL;
+		if (rc < (int) sizeof(input_event))
+			break;
+
+		if (input_event.type == EV_ABS) {
+			switch (input_event.code) {
+				case ABS_X:
+					event->orientation.azimuth = yas_orientation_convert(input_event.value);
+					break;
+				case ABS_Y:
+					event->orientation.pitch = yas_orientation_convert(input_event.value);
+					break;
+				case ABS_Z:
+					event->orientation.roll = yas_orientation_convert(input_event.value);
+					break;
+				default:
+					continue;
+			}
+		} else if (input_event.type == EV_SYN) {
+			if (input_event.code == SYN_REPORT)
+				event->timestamp = input_timestamp(&input_event);
 		}
-
-		if (input_event.type != EV_ABS)
-			continue;
-
-		switch (input_event.code) {
-			case ABS_X:
-				flag |= FLAG_X;
-				event->orientation.x = yas_orientation_orientation(input_event.value);
-				break;
-			case ABS_Y:
-				flag |= FLAG_Y;
-				event->orientation.y = yas_orientation_orientation(input_event.value);
-				break;
-			case ABS_Z:
-				flag |= FLAG_Z;
-				event->orientation.z = yas_orientation_orientation(input_event.value);
-				break;
-			default:
-				continue;
-		}
-		event->timestamp = input_timestamp(&input_event);
-	}
-
-	if (data->orientation.x != event->orientation.x)
-		data->orientation.x = event->orientation.x;
-	if (data->orientation.y != event->orientation.y)
-		data->orientation.y = event->orientation.y;
-	if (data->orientation.z != event->orientation.z)
-		data->orientation.z = event->orientation.z;
+	} while (input_event.type != EV_SYN);
 
 	return 0;
 }
@@ -384,6 +291,7 @@ struct piranha_sensors_handlers yas_orientation = {
 	.set_delay = yas_orientation_set_delay,
 	.get_data = yas_orientation_get_data,
 	.activated = 0,
+	.needed = 0,
 	.poll_fd = -1,
 	.data = NULL,
 };

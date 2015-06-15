@@ -22,43 +22,23 @@
 #include <hardware/sensors.h>
 #include <hardware/hardware.h>
 
-#ifndef _ORIENTATIOND_H_
-#define _ORIENTATIOND_H_
+#ifndef _GEOMAGNETICD_H_
+#define _GEOMAGNETICD_H_
 
-struct orientationd_data;
+#define GEOMAGNETICD_CONFIG_PATH		"/data/system/yas.cfg"
+#define GEOMAGNETICD_CONFIG_BACKUP_PATH		"/data/system/yas-backup.cfg"
 
-struct orientationd_handlers {
-	char *input_name;
-	int handle;
-	int poll_fd;
+struct geomagneticd_data {
+	int magnetic_extrema[2][3];
+	int hard_offsets[3];
+	int calib_offsets[3];
+	int accuracy;
 
-	int (*get_data)(struct orientationd_handlers *handlers,
-		struct orientationd_data *data);
-};
-
-struct orientationd_data {
-	struct orientationd_handlers **handlers;
-	int handlers_count;
-
-	struct pollfd *poll_fds;
-	int poll_fds_count;
-
-	sensors_vec_t orientation;
-	sensors_vec_t acceleration;
-	sensors_vec_t magnetic;
-
-	unsigned int delay;
 	int input_fd;
+	char path_offsets[PATH_MAX];
 
-	int activated;
-
-	pthread_t thread;
-	pthread_mutex_t mutex;
-	int thread_continue;
+	int count;
 };
-
-extern struct orientationd_handlers *orientationd_handlers[];
-extern int orientationd_handlers_count;
 
 /*
  * Input
@@ -75,12 +55,5 @@ int sysfs_value_read(char *path);
 int sysfs_value_write(char *path, int value);
 int sysfs_string_read(char *path, char *buffer, size_t length);
 int sysfs_string_write(char *path, char *buffer, size_t length);
-
-/*
- * Sensors
- */
-
-extern struct orientationd_handlers bma250;
-extern struct orientationd_handlers yas530;
 
 #endif

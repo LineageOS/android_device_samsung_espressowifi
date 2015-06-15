@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Paul Kocialkowski
+ * Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,16 +17,16 @@
 
 #include <stdint.h>
 #include <poll.h>
-
 #include <linux/input.h>
 
 #include <hardware/sensors.h>
 #include <hardware/hardware.h>
 
-#ifndef _SENSORS_H_
-#define _SENSORS_H_
+#ifndef _PIRANHA_SENSORS_H_
+#define _PIRANHA_SENSORS_H_
 
-#define PIRANHA_POLL_DELAY	100
+#define PIRANHA_SENSORS_NEEDED_API		(1 << 0)
+#define PIRANHA_SENSORS_NEEDED_ORIENTATION	(1 << 1)
 
 struct piranha_sensors_device;
 
@@ -34,14 +34,18 @@ struct piranha_sensors_handlers {
 	char *name;
 	int handle;
 
-	int (*init)(struct piranha_sensors_handlers *handlers, struct piranha_sensors_device *device);
+	int (*init)(struct piranha_sensors_handlers *handlers,
+		struct piranha_sensors_device *device);
 	int (*deinit)(struct piranha_sensors_handlers *handlers);
 	int (*activate)(struct piranha_sensors_handlers *handlers);
 	int (*deactivate)(struct piranha_sensors_handlers *handlers);
-	int (*set_delay)(struct piranha_sensors_handlers *handlers, int64_t delay);
-	int (*get_data)(struct piranha_sensors_handlers *handlers, struct sensors_event_t *event);
+	int (*set_delay)(struct piranha_sensors_handlers *handlers,
+		long int delay);
+	int (*get_data)(struct piranha_sensors_handlers *handlers,
+		struct sensors_event_t *event);
 
 	int activated;
+	int needed;
 	int poll_fd;
 
 	void *data;
@@ -60,8 +64,10 @@ struct piranha_sensors_device {
 extern struct piranha_sensors_handlers *piranha_sensors_handlers[];
 extern int piranha_sensors_handlers_count;
 
-int piranha_sensors_activate(struct sensors_poll_device_t *dev, int handle, int enabled);
-int piranha_sensors_set_delay(struct sensors_poll_device_t *dev, int handle, int64_t ns);
+int piranha_sensors_activate(struct sensors_poll_device_t *dev, int handle,
+	int enabled);
+int piranha_sensors_set_delay(struct sensors_poll_device_t *dev, int handle,
+	int64_t ns);
 int piranha_sensors_poll(struct sensors_poll_device_t *dev,
 	struct sensors_event_t* data, int count);
 
@@ -69,16 +75,27 @@ int piranha_sensors_poll(struct sensors_poll_device_t *dev,
  * Input
  */
 
-int64_t input_timestamp(struct input_event *event);
+void input_event_set(struct input_event *event, int type, int code, int value);
+long int timestamp(struct timeval *time);
+long int input_timestamp(struct input_event *event);
+int uinput_rel_create(const char *name);
+void uinput_destroy(int uinput_fd);
 int input_open(char *name);
 int sysfs_path_prefix(char *name, char *path_prefix);
+int sysfs_value_read(char *path);
+int sysfs_value_write(char *path, int value);
+int sysfs_string_read(char *path, char *buffer, size_t length);
+int sysfs_string_write(char *path, char *buffer, size_t length);
 
 /*
  * Sensors
  */
 
+int orientation_fill(struct piranha_sensors_handlers *handlers,
+	sensors_vec_t *acceleration, sensors_vec_t *magnetic);
+
 extern struct piranha_sensors_handlers bma250;
-extern struct piranha_sensors_handlers yas530c;
+extern struct piranha_sensors_handlers yas530;
 extern struct piranha_sensors_handlers yas_orientation;
 extern struct piranha_sensors_handlers bh1721;
 extern struct piranha_sensors_handlers gp2a_light;

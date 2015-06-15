@@ -33,15 +33,17 @@
 
 #include "piranha_sensors.h"
 
-struct bh1721_data {
+struct yas530_data {
 	char path_enable[PATH_MAX];
 	char path_delay[PATH_MAX];
+
+	sensors_vec_t magnetic;
 };
 
-int bh1721_init(struct piranha_sensors_handlers *handlers,
+int yas530_init(struct piranha_sensors_handlers *handlers,
 	struct piranha_sensors_device *device)
 {
-	struct bh1721_data *data = NULL;
+	struct yas530_data *data = NULL;
 	char path[PATH_MAX] = { 0 };
 	int input_fd = -1;
 	int rc;
@@ -51,22 +53,22 @@ int bh1721_init(struct piranha_sensors_handlers *handlers,
 	if (handlers == NULL)
 		return -EINVAL;
 
-	data = (struct bh1721_data *) calloc(1, sizeof(struct bh1721_data));
+	data = (struct yas530_data *) calloc(1, sizeof(struct yas530_data));
 
-	input_fd = input_open("light_sensor");
+	input_fd = input_open("geomagnetic");
 	if (input_fd < 0) {
 		ALOGE("%s: Unable to open input", __func__);
 		goto error;
 	}
 
-	rc = sysfs_path_prefix("light_sensor", (char *) &path);
+	rc = sysfs_path_prefix("geomagnetic", (char *) &path);
 	if (rc < 0 || path[0] == '\0') {
 		ALOGE("%s: Unable to open sysfs", __func__);
 		goto error;
 	}
 
 	snprintf(data->path_enable, PATH_MAX, "%s/enable", path);
-	snprintf(data->path_delay, PATH_MAX, "%s/poll_delay", path);
+	snprintf(data->path_delay, PATH_MAX, "%s/delay", path);
 
 	handlers->poll_fd = input_fd;
 	handlers->data = (void *) data;
@@ -86,7 +88,7 @@ error:
 	return -1;
 }
 
-int bh1721_deinit(struct piranha_sensors_handlers *handlers)
+int yas530_deinit(struct piranha_sensors_handlers *handlers)
 {
 	ALOGD("%s(%p)", __func__, handlers);
 
@@ -104,9 +106,9 @@ int bh1721_deinit(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int bh1721_activate(struct piranha_sensors_handlers *handlers)
+int yas530_activate(struct piranha_sensors_handlers *handlers)
 {
-	struct bh1721_data *data;
+	struct yas530_data *data;
 	int rc;
 
 	ALOGD("%s(%p)", __func__, handlers);
@@ -114,7 +116,7 @@ int bh1721_activate(struct piranha_sensors_handlers *handlers)
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
-	data = (struct bh1721_data *) handlers->data;
+	data = (struct yas530_data *) handlers->data;
 
 	rc = sysfs_value_write(data->path_enable, 1);
 	if (rc < 0) {
@@ -127,9 +129,9 @@ int bh1721_activate(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int bh1721_deactivate(struct piranha_sensors_handlers *handlers)
+int yas530_deactivate(struct piranha_sensors_handlers *handlers)
 {
-	struct bh1721_data *data;
+	struct yas530_data *data;
 	int rc;
 
 	ALOGD("%s(%p)", __func__, handlers);
@@ -137,7 +139,7 @@ int bh1721_deactivate(struct piranha_sensors_handlers *handlers)
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
-	data = (struct bh1721_data *) handlers->data;
+	data = (struct yas530_data *) handlers->data;
 
 	rc = sysfs_value_write(data->path_enable, 0);
 	if (rc < 0) {
@@ -150,9 +152,10 @@ int bh1721_deactivate(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int bh1721_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
+int yas530_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
 {
-	struct bh1721_data *data;
+	struct yas530_data *data;
+	int d;
 	int rc;
 
 	ALOGD("%s(%p, %ld)", __func__, handlers, delay);
@@ -160,9 +163,14 @@ int bh1721_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
-	data = (struct bh1721_data *) handlers->data;
+	data = (struct yas530_data *) handlers->data;
 
-	rc = sysfs_value_write(data->path_delay, (int) delay);
+	if (delay < 10000000)
+		d = 10;
+	else
+		d = delay / 1000000;
+
+	rc = sysfs_value_write(data->path_delay, d);
 	if (rc < 0) {
 		ALOGE("%s: Unable to write sysfs value", __func__);
 		return -1;
@@ -171,22 +179,25 @@ int bh1721_set_delay(struct piranha_sensors_handlers *handlers, long int delay)
 	return 0;
 }
 
-float bh1721_convert(int value)
+float yas530_convert(int value)
 {
-	return value * 0.712f;
+	return value / 1000.0f;
 }
 
-int bh1721_get_data(struct piranha_sensors_handlers *handlers,
+int yas530_get_data(struct piranha_sensors_handlers *handlers,
 	struct sensors_event_t *event)
 {
+	struct yas530_data *data;
 	struct input_event input_event;
 	int input_fd;
 	int rc;
 
 //	ALOGD("%s(%p, %p)", __func__, handlers, event);
 
-	if (handlers == NULL || event == NULL)
+	if (handlers == NULL || handlers->data == NULL || event == NULL)
 		return -EINVAL;
+
+	data = (struct yas530_data *) handlers->data;
 
 	input_fd = handlers->poll_fd;
 	if (input_fd < 0)
@@ -197,32 +208,51 @@ int bh1721_get_data(struct piranha_sensors_handlers *handlers,
 	event->sensor = handlers->handle;
 	event->type = handlers->handle;
 
+	event->magnetic.x = data->magnetic.x;
+	event->magnetic.y = data->magnetic.y;
+	event->magnetic.z = data->magnetic.z;
+
 	do {
 		rc = read(input_fd, &input_event, sizeof(input_event));
 		if (rc < (int) sizeof(input_event))
 			break;
 
-		if (input_event.type == EV_REL) {
-			if (input_event.code == REL_MISC)
-				event->light = bh1721_convert(input_event.value);
+		if (input_event.type == EV_ABS) {
+			switch (input_event.code) {
+				case ABS_X:
+					event->magnetic.x = yas530_convert(input_event.value);
+					break;
+				case ABS_Y:
+					event->magnetic.y = yas530_convert(input_event.value);
+					break;
+				case ABS_Z:
+					event->magnetic.z = yas530_convert(input_event.value);
+					break;
+				default:
+					continue;
+			}
 		} else if (input_event.type == EV_SYN) {
 			if (input_event.code == SYN_REPORT)
 				event->timestamp = input_timestamp(&input_event);
 		}
 	} while (input_event.type != EV_SYN);
 
+	data->magnetic.x = event->magnetic.x;
+	data->magnetic.y = event->magnetic.y;
+	data->magnetic.z = event->magnetic.z;
+
 	return 0;
 }
 
-struct piranha_sensors_handlers bh1721 = {
-	.name = "BH1721",
-	.handle = SENSOR_TYPE_LIGHT,
-	.init = bh1721_init,
-	.deinit = bh1721_deinit,
-	.activate = bh1721_activate,
-	.deactivate = bh1721_deactivate,
-	.set_delay = bh1721_set_delay,
-	.get_data = bh1721_get_data,
+struct piranha_sensors_handlers yas530 = {
+	.name = "YAS530",
+	.handle = SENSOR_TYPE_MAGNETIC_FIELD,
+	.init = yas530_init,
+	.deinit = yas530_deinit,
+	.activate = yas530_activate,
+	.deactivate = yas530_deactivate,
+	.set_delay = yas530_set_delay,
+	.get_data = yas530_get_data,
 	.activated = 0,
 	.needed = 0,
 	.poll_fd = -1,

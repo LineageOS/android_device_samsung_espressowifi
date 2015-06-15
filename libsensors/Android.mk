@@ -1,5 +1,4 @@
-#
-# Copyright (C) 2013 Paul Kocialkowski
+# Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,7 +12,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 LOCAL_PATH := $(call my-dir)
 PIRANHA_SENSORS_PATH := $(LOCAL_PATH)
@@ -23,12 +21,15 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	piranha_sensors.c \
 	input.c \
-	bma250.c \
-	yas530c.c \
-	yas_orientation.c \
 	bh1721.c \
+	bma250.c \
 	gp2a_light.c \
-	gp2a_proximity.c
+	gp2a_proximity.c \
+	yas530.c \
+	yas_orientation.c
+
+LOCAL_C_INCLUDES := \
+	$(LOCAL_PATH)
 
 LOCAL_SHARED_LIBRARIES := libutils libcutils liblog libhardware
 LOCAL_PRELINK_MODULE := false
@@ -57,7 +58,8 @@ LOCAL_PATH := $(PIRANHA_SENSORS_PATH)/geomagneticd
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
-	geomagneticd.c
+	geomagneticd.c \
+	input.c
 
 LOCAL_SHARED_LIBRARIES := libutils libcutils liblog
 LOCAL_PRELINK_MODULE := false
@@ -72,9 +74,10 @@ LOCAL_PATH := $(PIRANHA_SENSORS_PATH)/orientationd
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
+	orientationd.c \
 	input.c \
-	vector.c \
-	orientationd.c
+	bma250.c \
+	yas530.c
 
 LOCAL_SHARED_LIBRARIES := libutils libcutils liblog
 LOCAL_PRELINK_MODULE := false
