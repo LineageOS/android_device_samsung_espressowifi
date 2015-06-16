@@ -70,6 +70,11 @@ enum ril_two_mic_state {
     TWO_MIC_SOLUTION_ON
 };
 
+enum ril_mic_mute {
+    MIC_UNMUTE,
+    MIC_MUTE
+};
+
 /* Function prototypes */
 int ril_open(struct ril_handle *ril);
 int ril_close(struct ril_handle *ril);
