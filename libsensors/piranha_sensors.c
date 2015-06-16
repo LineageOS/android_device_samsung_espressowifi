@@ -35,13 +35,13 @@
  */
 
 struct sensor_t piranha_sensors[] = {
-	{ "BMA250 Acceleration Sensor", "Bosch", 1, SENSOR_TYPE_ACCELEROMETER,
+	{ "BMA250 Acceleration Sensor", "Bosch Sensortec", 1, SENSOR_TYPE_ACCELEROMETER,
 		SENSOR_TYPE_ACCELEROMETER, 2 * GRAVITY_EARTH, GRAVITY_EARTH / 256.0f, 0.13f, 10000,
 		0, 0, 0, 0, 0, SENSOR_FLAG_CONTINUOUS_MODE, {0}, },
-	{ "YAS530 Magnetic Sensor", "Yamaha", 1, SENSOR_TYPE_MAGNETIC_FIELD,
+	{ "YAS530 Magnetic Sensor", "Yamaha Corporation", 1, SENSOR_TYPE_MAGNETIC_FIELD,
 		SENSOR_TYPE_MAGNETIC_FIELD, 800.0f, 0.3f, 4.0f, 10000,
 		0, 0, 0, 0, 0, SENSOR_FLAG_CONTINUOUS_MODE, {0}, },
-	{ "YAS Orientation Sensor", "Yamaha", 1, SENSOR_TYPE_ORIENTATION,
+	{ "YAS Orientation Sensor", "Yamaha Corporation", 1, SENSOR_TYPE_ORIENTATION,
 		SENSOR_TYPE_ORIENTATION, 360.0f, 0.1f, 0.0f, 10000,
 		0, 0, 0, 0, 0, SENSOR_FLAG_CONTINUOUS_MODE, {0}, },
 #ifdef TARGET_DEVICE_P5100
