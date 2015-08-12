@@ -48,6 +48,8 @@ struct sensor_t piranha_sensors[] = {
 #ifdef TARGET_DEVICE_P3100
 	{ "GP2A Light Sensor", "Sharp", 1, SENSOR_TYPE_LIGHT,
 		SENSOR_TYPE_LIGHT, 10240.0f, 1.0f, 0.75f, 0, {}, },
+#endif
+#ifdef TARGET_HAS_PROXIMITY_SENSOR
 	{ "GP2A Proximity Sensor", "Sharp", 1, SENSOR_TYPE_PROXIMITY,
 		SENSOR_TYPE_PROXIMITY, 5.0f, 5.0f, 0.75f, 0, {}, },
 #endif
@@ -64,6 +66,8 @@ struct piranha_sensors_handlers *piranha_sensors_handlers[] = {
 #endif
 #ifdef TARGET_DEVICE_P3100
 	&gp2a_light,
+#endif
+#ifdef TARGET_HAS_PROXIMITY_SENSOR
 	&gp2a_proximity,
 #endif
 };
