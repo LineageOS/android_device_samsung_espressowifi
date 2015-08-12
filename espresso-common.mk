@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 The CyanogenMod Project
+# Copyright (C) 2012-2015 The CyanogenMod Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,30 +17,14 @@
 # Include omap4 common makefile
 $(call inherit-product, device/samsung/omap4-common/common.mk)
 
-DEVICE_PACKAGE_OVERLAYS += device/samsung/p3100/overlay/aosp-common
+DEVICE_PACKAGE_OVERLAYS += device/samsung/espresso-common/overlay/aosp-common
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
 # The gps config appropriate for this device
 $(call inherit-product, device/common/gps/gps_us_supl.mk)
 
-LOCAL_PATH := device/samsung/p3100
-
-# Enable higher-res drawables while keeping mdpi as primary source
-PRODUCT_AAPT_CONFIG := large
-PRODUCT_AAPT_PREF_CONFIG := mdpi
-PRODUCT_LOCALES += mdpi
-
-# Ramdisk
-PRODUCT_PACKAGES += \
-    fstab.espresso \
-    init.espresso.usb.rc \
-    init.espresso.rc \
-    ueventd.espresso.rc
-
-# Recovery Ramdisk
-PRODUCT_PACKAGES += \
-    init.recovery.espresso.rc
+LOCAL_PATH := device/samsung/espresso-common
 
 # GPS
 PRODUCT_COPY_FILES += \
@@ -134,4 +118,3 @@ PRODUCT_TAGS += dalvik.gc.type-precise
 
 $(call inherit-product, frameworks/native/build/tablet-dalvik-heap.mk)
 $(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4330/device-bcm.mk)
-$(call inherit-product, vendor/samsung/p31xx/p31xx-vendor.mk)

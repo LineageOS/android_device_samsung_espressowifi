@@ -1,3 +1,0 @@
-require board=espresso
-require version-bootloader=P3100XWALE2
-require version-baseband=P3100XWALE2
