@@ -39,6 +39,8 @@ struct yas_orientation_data {
 
 	char path_enable[PATH_MAX];
 	char path_delay[PATH_MAX];
+
+	sensors_vec_t orientation;
 };
 
 int yas_orientation_init(struct piranha_sensors_handlers *handlers,
@@ -234,14 +236,17 @@ float yas_orientation_convert(int value)
 int yas_orientation_get_data(struct piranha_sensors_handlers *handlers,
 	struct sensors_event_t *event)
 {
+	struct yas_orientation_data *data;
 	struct input_event input_event;
 	int input_fd;
 	int rc;
 
 //	ALOGD("%s(%p, %p)", __func__, handlers, event);
 
-	if (handlers == NULL || event == NULL)
+	if (handlers == NULL || handlers->data == NULL || event == NULL)
 		return -EINVAL;
+
+	data = (struct yas_orientation_data *) handlers->data;
 
 	input_fd = handlers->poll_fd;
 	if (input_fd < 0)
@@ -251,6 +256,10 @@ int yas_orientation_get_data(struct piranha_sensors_handlers *handlers,
 	event->version = sizeof(struct sensors_event_t);
 	event->sensor = handlers->handle;
 	event->type = handlers->handle;
+
+	event->orientation.azimuth = data->orientation.azimuth;
+	event->orientation.pitch = data->orientation.pitch;
+	event->orientation.roll = data->orientation.roll;
 
 	do {
 		rc = read(input_fd, &input_event, sizeof(input_event));
@@ -276,6 +285,10 @@ int yas_orientation_get_data(struct piranha_sensors_handlers *handlers,
 				event->timestamp = input_timestamp(&input_event);
 		}
 	} while (input_event.type != EV_SYN);
+
+	data->orientation.azimuth = event->orientation.azimuth;
+	data->orientation.pitch = event->orientation.pitch;
+	data->orientation.roll = event->orientation.roll;
 
 	return 0;
 }
