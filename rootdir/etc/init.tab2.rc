@@ -1,4 +1,4 @@
-import init.espresso.usb.rc
+import init.${ro.hardware}.usb.rc
 
 on init
     mkdir /mnt/shell/emulated 0700 shell shell
