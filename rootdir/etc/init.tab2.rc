@@ -1,4 +1,5 @@
 import init.${ro.hardware}.usb.rc
+import init.device.${ro.hardware}.rc
 
 on init
     mkdir /mnt/shell/emulated 0700 shell shell
@@ -45,7 +46,6 @@ loglevel 7
 
 on fs
     mkdir /efs
-    mount_all /fstab.espresso
 
     setprop ro.crypto.fuse_sdcard true
 

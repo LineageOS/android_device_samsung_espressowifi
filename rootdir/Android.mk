@@ -3,7 +3,11 @@ include $(CLEAR_VARS)
 
 # boot.img parts
 include $(CLEAR_VARS)
+ifneq ($(filter p3100 p3110,$(TARGET_DEVICE)),)
 LOCAL_MODULE       := fstab.espresso
+else
+LOCAL_MODULE       := fstab.espresso10
+endif
 LOCAL_MODULE_TAGS  := optional eng
 LOCAL_MODULE_CLASS := ETC
 LOCAL_SRC_FILES    := etc/fstab.tab2
@@ -43,6 +47,22 @@ endif
 LOCAL_MODULE_TAGS  := optional eng
 LOCAL_MODULE_CLASS := ETC
 LOCAL_SRC_FILES    := etc/ueventd.tab2.rc
+LOCAL_MODULE_PATH  := $(TARGET_ROOT_OUT)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+ifneq ($(filter p3100 p3110,$(TARGET_DEVICE)),)
+LOCAL_MODULE       := init.device.espresso.rc
+else
+LOCAL_MODULE       := init.device.espresso10.rc
+endif
+LOCAL_MODULE_TAGS  := optional eng
+LOCAL_MODULE_CLASS := ETC
+ifneq ($(filter p3100 p3110,$(TARGET_DEVICE)),)
+LOCAL_SRC_FILES    := etc/init.device.espresso.rc
+else
+LOCAL_SRC_FILES    := etc/init.device.espresso10.rc
+endif
 LOCAL_MODULE_PATH  := $(TARGET_ROOT_OUT)
 include $(BUILD_PREBUILT)
 
