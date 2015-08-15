@@ -21,8 +21,6 @@
 # Inherit CM specific board config
 -include device/samsung/espressowifi/BoardConfigCM.mk
 
-TARGET_SPECIFIC_HEADER_PATH += device/samsung/espressowifi/include
-
 TARGET_NO_BOOTLOADER := true
 
 TARGET_BOOTLOADER_BOARD_NAME := piranha
