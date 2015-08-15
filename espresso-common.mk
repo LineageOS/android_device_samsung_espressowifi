@@ -62,7 +62,6 @@ PRODUCT_PACKAGES += \
     audio.primary.piranha \
     audio.r_submix.default \
     camera.piranha \
-    hwcomposer.piranha \
     lights.piranha \
     libinvensense_mpl \
     power.piranha \
