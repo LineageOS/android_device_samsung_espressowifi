@@ -12,10 +12,7 @@
 
        acLogDirectory="/sdcard/gps/broadcom/"
 
-       TISEnabled="true"
        LPmode="false"
-       cp-cold-start="false"
-       cp-guard-time-sec="1"
 
        arp-supl-enable="true"
        arp-supl-cap-msb="true"
