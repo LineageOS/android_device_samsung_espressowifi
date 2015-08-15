@@ -73,7 +73,6 @@ PRODUCT_PACKAGES += \
     audio.r_submix.default \
     audio.usb.default \
     camera.omap4 \
-    hwcomposer.piranha \
     lights.piranha \
     libinvensense_mpl \
     power.piranha

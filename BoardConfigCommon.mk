@@ -50,7 +50,6 @@ BOARD_FLASH_BLOCK_SIZE := 4096
 
 # Egl
 BOARD_EGL_CFG := device/samsung/espresso-common/configs/egl.cfg
-USE_OPENGL_RENDERER := true
 
 # Boot Animation
 TARGET_BOOTANIMATION_PRELOAD := true
@@ -86,9 +85,6 @@ BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/espresso-common/bluetooth
 BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espresso-common/bluetooth/vnd_espresso.txt
-
-# Security
-BOARD_USES_SECURE_SERVICES := true
 
 # Selinux
 BOARD_SEPOLICY_DIRS += \
