@@ -47,33 +47,19 @@ loglevel 7
 on fs
     mkdir /efs
 
-    setprop ro.crypto.fuse_sdcard true
-
 # We chown/chmod /efs because mount is run as root + defaults
     chown radio system /efs
     chmod 0775 /efs
 
-    mount debugfs /sys/kernel/debug /sys/kernel/debug
-
 # Restorecon
-    restorecon /efs/nv.log
-    restorecon /efs/nv_data.bin
-    restorecon /efs/nv_data.bin.md5
-    restorecon /efs/.nv_core.bak
-    restorecon /efs/.nv_core.bak.md5
-    restorecon /efs/.nv_data.bak
-    restorecon /efs/.nv_data.bak.md5
-    restorecon /efs/.nv_state
-    restorecon /efs/bluetooth/bt_addr
-    restorecon /efs/FactoryApp/factorymode
-    restorecon /efs/FactoryApp/hw_ver
-    restorecon /efs/FactoryApp/keystr
-    restorecon /efs/FactoryApp/serial_no
-    restorecon /efs/imei/mps_code.dat
-    restorecon /efs/wifi/.mac.info
+    restorecon_recursive /efs
 
 # pvr module
     insmod /system/lib/modules/pvrsrvkm_sgx540_120.ko
+
+    setprop ro.crypto.fuse_sdcard true
+
+    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
 on post-fs-data
     # we will remap this as /storage/sdcard0 with the sdcard fuse tool
