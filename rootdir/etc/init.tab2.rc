@@ -56,6 +56,7 @@ on fs
 
 # pvr module
     insmod /system/lib/modules/pvrsrvkm_sgx540_120.ko
+    start pvrsrvinit
 
     setprop ro.crypto.fuse_sdcard true
 
@@ -271,12 +272,7 @@ service pvrsrvinit /system/bin/pvrsrvinit
     user root
     group root
     oneshot
-
-service pvrsrvctl /system/vendor/bin/pvrsrvctl_SGX540_120 --start --no-module
-    class core
-    user root
-    group root
-    oneshot
+    disabled
 
 # SMC Service
 service tf_daemon /system/bin/tf_daemon \
