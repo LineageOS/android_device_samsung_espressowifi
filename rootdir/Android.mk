@@ -20,7 +20,7 @@ LOCAL_MODULE_PATH  := $(TARGET_ROOT_OUT)
 
 include $(BUILD_SYSTEM)/base_rules.mk
 
-$(LOCAL_BUILT_MODULE): TARGET := $(TARGET_ROOT_OUT)/fstab.espresso
+$(LOCAL_BUILT_MODULE): TARGET := fstab.espresso
 $(LOCAL_BUILT_MODULE): SYMLINK := $(TARGET_ROOT_OUT)/$(LOCAL_MODULE)
 $(LOCAL_BUILT_MODULE):
 	$(hide) echo "Symlink: $(SYMLINK) -> $(TARGET)"
