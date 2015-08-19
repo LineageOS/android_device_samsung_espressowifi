@@ -71,7 +71,8 @@ PRODUCT_PACKAGES += \
     camera.omap4 \
     lights.piranha \
     libinvensense_mpl \
-    power.piranha
+    power.piranha \
+    libsecril-client
 
 # Charger
 PRODUCT_PACKAGES += \
