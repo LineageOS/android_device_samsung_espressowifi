@@ -194,6 +194,8 @@ struct espresso_dev_cfg {
     unsigned int off_len;
 };
 
+static bool device_has_earpiece = false;
+
 /**
  * NOTE: when multiple mutexes have to be acquired, always respect the following order:
  *        hw device > in stream > out stream
@@ -513,7 +515,11 @@ static void set_incall_device(struct espresso_audio_device *adev)
             }
             break;
         default:
-            device_type = SOUND_AUDIO_PATH_HANDSET;
+            if (device_has_earpiece) {
+                device_type = SOUND_AUDIO_PATH_HANDSET;
+            } else {
+                device_type = SOUND_AUDIO_PATH_SPEAKER;
+            }
             break;
     }
 
@@ -2865,6 +2871,10 @@ static void adev_config_start(void *data, const XML_Char *elem,
         if (!dev_cfg) {
             ALOGE("Unable to allocate dev_cfg\n");
             return;
+        }
+
+        if (strcmp(name, "earpiece") == 0) {
+            device_has_earpiece = true;
         }
 
         s->dev = &dev_cfg[s->adev->num_dev_cfgs];
