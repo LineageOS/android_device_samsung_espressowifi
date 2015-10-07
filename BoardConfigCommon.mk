@@ -104,24 +104,6 @@ BOARD_USE_LEGACY_SENSORS_FUSION := false
 BOARD_SEPOLICY_DIRS += \
     device/samsung/espresso-common/sepolicy
 
-BOARD_SEPOLICY_UNION += \
-    bluetooth.te \
-    device.te \
-    dock_kbd_attach.te \
-    domain.te \
-    file.te \
-    file_contexts \
-    geomagneticd.te \
-    gpsd.te \
-    init.te \
-    orientationd.te \
-    pvrsrvinit.te \
-    radio.te \
-    rild.te \
-    smc_pa.te \
-    sysinit.te \
-    wpa_supplicant.te
-
 # Recovery
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
 BOARD_UMS_LUNFILE := "/sys/class/android_usb/f_mass_storage/lun0/file"
