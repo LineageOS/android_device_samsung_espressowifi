@@ -12,5 +12,4 @@ allow rild self:netlink_route_socket { write };
 allow rild self:netlink_socket { create bind read write };
 allow rild self:process { execmem };
 allow rild system_data_file:dir { getattr setattr write remove_name add_name search };
-allow rild system_data_file:file { getattr unlink create write setattr read open append };
 allow rild unlabeled:dir search;
