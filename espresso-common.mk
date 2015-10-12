@@ -99,10 +99,6 @@ PRODUCT_PACKAGES += \
     fibmap.f2fs \
     f2fstat
 
-# Storage
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.isUsbOtgEnabled=true
-
 # Set default USB interface
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp
