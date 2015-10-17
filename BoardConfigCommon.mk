@@ -33,9 +33,6 @@ BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_BASE := 0x40000000
 # BOARD_KERNEL_CMDLINE :=
 
-# Use dlmalloc
-MALLOC_IMPL := dlmalloc
-
 # External SGX Module
 SGX_MODULES:
 	make clean -C $(HARDWARE_TI_OMAP4_BASE)/pvr-source/eurasiacon/build/linux2/omap4430_android
