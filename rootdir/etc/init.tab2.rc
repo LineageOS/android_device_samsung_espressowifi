@@ -43,8 +43,6 @@ on init
 # PVR
     chmod 0666 /dev/pvrsrvkm
 
-loglevel 7
-
 on fs
     mkdir /efs
 
