@@ -59,8 +59,10 @@ PRODUCT_COPY_FILES += \
 
 # Packages
 PRODUCT_PACKAGES += \
+    audio.a2dp.default \
     audio.primary.piranha \
     audio.r_submix.default \
+    audio.usb.default \
     camera.omap4 \
     lights.piranha \
     libinvensense_mpl \
