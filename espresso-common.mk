@@ -30,6 +30,27 @@ LOCAL_PATH := device/samsung/espresso-common
 PRODUCT_AAPT_CONFIG := normal large tvdpi hdpi
 PRODUCT_AAPT_PREF_CONFIG := tvdpi
 
+ifneq ($(filter p3100 p3110,$(TARGET_DEVICE)),)
+# Ramdisk
+PRODUCT_PACKAGES += \
+    fstab.espresso \
+    init.espresso.usb.rc \
+    init.espresso.rc \
+    ueventd.espresso.rc
+
+# Recovery Ramdisk
+PRODUCT_PACKAGES += \
+    init.recovery.espresso.rc
+else
+# Ramdisk
+PRODUCT_PACKAGES += \
+    fstab.espresso \
+    fstab.espresso10 \
+    init.espresso10.usb.rc \
+    init.espresso10.rc \
+    ueventd.espresso10.rc
+endif
+
 # GPS
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.xml:system/etc/gps.xml
