@@ -1,0 +1,15 @@
+system/bin/gpsd
+system/bin/smc.ini
+system/bin/smc_pa.ift
+system/etc/wifi/bcmdhd_p2p.bin
+system/etc/wifi/nvram_mfg.txt
+system/etc/wifi/nvram_net.txt
+system/lib/hw/gps.omap4.so
+system/lib/libQmageDecoder.so
+system/lib/libsecnativefeature.so
+system/vendor/firmware/BCM4330.hcd
+system/vendor/firmware/ducati-m3.bin
+system/vendor/lib/drm/libdrmwvmplugin.so
+system/vendor/lib/libWVStreamControlAPI_L1.so
+system/vendor/lib/libwvdrm_L1.so
+system/vendor/lib/libwvm.so
