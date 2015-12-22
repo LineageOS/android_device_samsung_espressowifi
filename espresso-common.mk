@@ -26,6 +26,26 @@ $(call inherit-product, device/common/gps/gps_us_supl.mk)
 
 LOCAL_PATH := device/samsung/espresso-common
 
+# Enable higher-res drawables while keeping mdpi as primary source
+PRODUCT_AAPT_CONFIG := large
+PRODUCT_AAPT_PREF_CONFIG := mdpi
+PRODUCT_LOCALES += mdpi
+
+# Ramdisk
+PRODUCT_PACKAGES += \
+    fstab.espresso \
+    fstab.espresso10 \
+    init.espresso.usb.rc \
+    init.espresso10.usb.rc \
+    init.espresso.rc \
+    init.espresso10.rc \
+    ueventd.espresso.rc \
+    ueventd.espresso10.rc
+
+# Recovery Ramdisk
+PRODUCT_PACKAGES += \
+    init.recovery.espresso.rc
+
 # GPS
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.xml:system/etc/gps.xml
