@@ -116,10 +116,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     dock_kbd_attach
 
-ifneq ($(filter p3100 p5100,$(TARGET_DEVICE)),)
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.telephony.ril_class=SamsungOmap4RIL
-endif
 
 # These are the hardware-specific features
 PRODUCT_COPY_FILES += \
