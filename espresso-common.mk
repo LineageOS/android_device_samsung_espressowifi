@@ -102,10 +102,6 @@ PRODUCT_PACKAGES += \
     fibmap.f2fs \
     f2fstat
 
-# Set default USB interface
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp
-
 # Charger
 PRODUCT_PACKAGES += \
     charger \
