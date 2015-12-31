@@ -47,6 +47,9 @@ PRODUCT_PACKAGES += \
     init.recovery.espresso.rc
 
 # GPS
+PRODUCT_PACKAGES += \
+    libgpsd-compat
+
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.xml:system/etc/gps.xml
 
