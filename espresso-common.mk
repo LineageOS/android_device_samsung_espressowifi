@@ -19,14 +19,10 @@ $(call inherit-product, hardware/ti/omap4/omap4.mk)
 
 DEVICE_PACKAGE_OVERLAYS += device/samsung/espressowifi/overlay/aosp-common
 
-$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
-
 LOCAL_PATH := device/samsung/espressowifi
 
-# Enable higher-res drawables while keeping mdpi as primary source
 PRODUCT_AAPT_CONFIG := large
 PRODUCT_AAPT_PREF_CONFIG := mdpi
-PRODUCT_LOCALES += mdpi
 
 # Ramdisk
 PRODUCT_PACKAGES += \
@@ -61,8 +57,7 @@ PRODUCT_PACKAGES += \
     wpa_supplicant.conf
 
 PRODUCT_PROPERTY_OVERRIDES += \
-    wifi.interface=wlan0 \
-    wifi.supplicant_scan_interval=15
+    wifi.interface=wlan0
 
 # Bluetooth
 PRODUCT_COPY_FILES += \
@@ -106,7 +101,6 @@ PRODUCT_PACKAGES += \
 
 # Charger
 PRODUCT_PACKAGES += \
-    charger \
     charger_res_images
 
 # Samsung dock keyboard
@@ -136,14 +130,6 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_CHARACTERISTICS := tablet
 
-PRODUCT_PACKAGES += \
-    librs_jni \
-    com.android.future.usb.accessory
-
-# Feature live wallpaper
-PRODUCT_COPY_FILES += \
-    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml
-
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072 \
     ro.bq.gpu_to_cpu_unsupported=1 \
@@ -151,8 +137,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.dex2oat-flags=--no-watch-dog
-
-PRODUCT_TAGS += dalvik.gc.type-precise
 
 $(call inherit-product-if-exists, vendor/samsung/espresso-common/espresso-common-vendor.mk)
 $(call inherit-product, frameworks/native/build/tablet-dalvik-heap.mk)
