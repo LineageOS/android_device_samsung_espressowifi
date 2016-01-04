@@ -120,9 +120,6 @@ TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espresso-common
 RECOVERY_FSTAB_VERSION := 2
 BOARD_HAS_DOWNLOAD_MODE := true
 
-BOARD_CUSTOM_BOOTIMG_MK := device/samsung/espresso-common/custombootimg.mk
-BOARD_CANT_BUILD_RECOVERY_FROM_BOOT_PATCH := true
-
 # RIL
 BOARD_VENDOR := samsung
 BOARD_PROVIDES_LIBRIL := true
