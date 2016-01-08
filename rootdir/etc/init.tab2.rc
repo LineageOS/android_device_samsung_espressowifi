@@ -40,6 +40,12 @@ on fs
     insmod /system/lib/modules/pvrsrvkm_sgx540_120.ko
     start pvrsrvinit
 
+    # read only 1 page at a time
+    write /proc/sys/vm/page-cluster 0
+
+    # set swappines to 100
+    write /proc/sys/vm/swappiness 100
+
     mount debugfs /sys/kernel/debug /sys/kernel/debug
 
 on post-fs-data
