@@ -112,6 +112,9 @@ PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
 PRODUCT_PROPERTY_OVERRIDES += \
+    ro.sf.lcd_density=160
+
+PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072
 
 PRODUCT_TAGS += dalvik.gc.type-precise
