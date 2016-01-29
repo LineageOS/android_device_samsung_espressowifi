@@ -17,7 +17,7 @@
 # Inherit common omap4 board config
 -include hardware/ti/omap4/BoardConfigCommon.mk
 
-TARGET_SPECIFIC_HEADER_PATH += device/samsung/espresso-common/include
+TARGET_SPECIFIC_HEADER_PATH += device/samsung/espresso/include
 
 TARGET_NO_BOOTLOADER := true
 
@@ -85,15 +85,15 @@ BOARD_HAVE_SAMSUNG_WIFI          := true
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/espresso-common/bluetooth
-BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espresso-common/bluetooth/vnd_espresso.txt
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/espresso/bluetooth
+BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espresso/bluetooth/vnd_espresso.txt
 
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 
 # Selinux
 BOARD_SEPOLICY_DIRS += \
-    device/samsung/espresso-common/sepolicy
+    device/samsung/espresso/sepolicy
 
 BOARD_SEPOLICY_UNION += \
     bluetooth.te \
@@ -116,8 +116,8 @@ BOARD_SEPOLICY_UNION += \
 # Recovery
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
 BOARD_SUPPRESS_EMMC_WIPE := true
-TARGET_RECOVERY_FSTAB := device/samsung/espresso-common/rootdir/etc/fstab.tab2
-TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espresso-common
+TARGET_RECOVERY_FSTAB := device/samsung/espresso/rootdir/etc/fstab.tab2
+TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espresso
 RECOVERY_FSTAB_VERSION := 2
 BOARD_HAS_DOWNLOAD_MODE := true
 
@@ -125,4 +125,4 @@ BOARD_HAS_DOWNLOAD_MODE := true
 BOARD_VENDOR := samsung
 BOARD_PROVIDES_LIBRIL := true
 BOARD_MODEM_TYPE := xmm6260
-BOARD_RIL_CLASS := ../../../device/samsung/espresso-common/ril
+BOARD_RIL_CLASS := ../../../device/samsung/espresso/ril
