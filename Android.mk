@@ -23,8 +23,6 @@
 
 LOCAL_PATH := $(call my-dir)
 
-ifneq ($(filter p3100 p3110 p5100 p5110,$(TARGET_DEVICE)),)
-
+ifneq ($(filter espresso espresso3g,$(TARGET_DEVICE)),)
 include $(call all-makefiles-under,$(LOCAL_PATH))
-
 endif

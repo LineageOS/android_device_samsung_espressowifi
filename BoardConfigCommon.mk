@@ -18,7 +18,7 @@
 # Inherit common omap4 board config
 -include hardware/ti/omap4/BoardConfigCommon.mk
 
-TARGET_SPECIFIC_HEADER_PATH += device/samsung/espresso-common/include
+TARGET_SPECIFIC_HEADER_PATH += device/samsung/espresso/include
 
 TARGET_NO_BOOTLOADER := true
 
@@ -54,7 +54,7 @@ BOARD_USERDATAIMAGE_PARTITION_SIZE := 2147483648
 BOARD_FLASH_BLOCK_SIZE := 4096
 
 # Egl
-BOARD_EGL_CFG := device/samsung/espresso-common/configs/egl.cfg
+BOARD_EGL_CFG := device/samsung/espresso/configs/egl.cfg
 
 # Boot Animation
 TARGET_BOOTANIMATION_PRELOAD := true
@@ -93,12 +93,12 @@ BOARD_NO_APSME_ATTR              := true
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/espresso-common/bluetooth
-BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espresso-common/bluetooth/vnd_espresso.txt
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/espresso/bluetooth
+BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espresso/bluetooth/vnd_espresso.txt
 
 # Selinux
 BOARD_SEPOLICY_DIRS += \
-    device/samsung/espresso-common/selinux
+    device/samsung/espresso/selinux
 
 BOARD_SEPOLICY_UNION += \
     file_contexts \
@@ -115,9 +115,9 @@ BOARD_UMS_LUNFILE := "/sys/class/android_usb/f_mass_storage/lun0/file"
 BOARD_HAS_NO_SELECT_BUTTON := true
 BOARD_RECOVERY_SWIPE := true
 BOARD_SUPPRESS_EMMC_WIPE := true
-TARGET_RECOVERY_FSTAB := device/samsung/espresso-common/rootdir/etc/fstab.tab2
-TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espresso-common
+TARGET_RECOVERY_FSTAB := device/samsung/espresso/rootdir/etc/fstab.tab2
+TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espresso
 RECOVERY_FSTAB_VERSION := 2
 
 # Charging mode
-BOARD_CHARGER_RES := device/samsung/espresso-common/res/charger
+BOARD_CHARGER_RES := device/samsung/espresso/res/charger
