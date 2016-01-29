@@ -65,8 +65,7 @@
 #define VX_WB_SAMPLING_RATE 16000
 
 /* product-specific defines */
-#define PRODUCT_DEVICE_PROPERTY "ro.product.device"
-#define PRODUCT_NAME_PROPERTY   "ro.product.name"
+#define DEVICE_VARIANT_SYSFS "/sys/board_properties/type"
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
