@@ -61,6 +61,13 @@ PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml
 
+# Audio configs
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/audio/tiny_hw_espresso.xml:system/etc/sound/espresso \
+    $(LOCAL_PATH)/audio/tiny_hw_espressowifi.xml:system/etc/sound/espressowifi \
+    $(LOCAL_PATH)/audio/tiny_hw_espresso10.xml:system/etc/sound/espresso10 \
+    $(LOCAL_PATH)/audio/tiny_hw_espresso10wifi.xml:system/etc/sound/espresso10wifi
+
 # Keylayout
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/usr/keychars/espresso-gpio-keypad.kcm:system/usr/keychars/espresso-gpio-keypad.kcm \
