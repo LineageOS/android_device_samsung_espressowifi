@@ -30,6 +30,8 @@
 #define PIRANHA_SENSORS_NEEDED_API		(1 << 0)
 #define PIRANHA_SENSORS_NEEDED_ORIENTATION	(1 << 1)
 
+#define DEVICE_VARIANT_SYSFS "/sys/board_properties/type"
+
 struct piranha_sensors_device;
 
 struct piranha_sensors_handlers {
