@@ -2986,14 +2986,23 @@ static int adev_config_parse(struct espresso_audio_device *adev)
     struct config_parse_state s;
     FILE *f;
     XML_Parser p;
-    char property[PROPERTY_VALUE_MAX];
+    char device[16];
     char file[80];
     int ret = 0;
     bool eof = false;
     int len;
 
-    property_get("ro.product.device", property, "tiny_hw");
-    snprintf(file, sizeof(file), "/system/etc/sound/%s", property);
+    f = fopen(DEVICE_VARIANT_SYSFS, "r");
+    if (!f) {
+        ALOGE("Failed to open" DEVICE_VARIANT_SYSFS "\n");
+        return -ENODEV;
+    }
+    if (fgets(device, 16, f) == NULL) {
+        ALOGE("Failed to read device variant\n");
+        goto out;
+    }
+    fclose(f);
+    snprintf(file, sizeof(file), "/system/etc/sound/%s", device);
 
     ALOGV("Reading configuration from %s\n", file);
     f = fopen(file, "r");
