@@ -16,6 +16,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <fcntl.h>
@@ -30,6 +31,10 @@
 
 #include "piranha_sensors.h"
 
+/* Boolean indicating if the sensors are
+   set up for the current device variant */
+int8_t setup_done = 0;
+
 /*
  * Sensors list
  */
@@ -41,18 +46,18 @@ struct sensor_t piranha_sensors[] = {
 		SENSOR_TYPE_MAGNETIC_FIELD, 800.0f, 0.3f, 4.0f, 10000, 0, 0, {}, },
 	{ "YAS Orientation Sensor", "Yamaha", 1, SENSOR_TYPE_ORIENTATION,
 		SENSOR_TYPE_ORIENTATION, 360.0f, 0.1f, 0.0f, 10000, 0, 0, {}, },
-#ifdef TARGET_DEVICE_P5100
+/* P51xx only */
 	{ "BH1721 Light Sensor", "ROHM", 1, SENSOR_TYPE_LIGHT,
 		SENSOR_TYPE_LIGHT, 0.0f, 0.0f, 0.0f, 0, 0, 0, {}, },
-#endif
-#ifdef TARGET_DEVICE_P3100
+/* ---------- */
+/* P31xx only */
 	{ "GP2A Light Sensor", "Sharp", 1, SENSOR_TYPE_LIGHT,
 		SENSOR_TYPE_LIGHT, 10240.0f, 1.0f, 0.75f, 0, 0, 0, {}, },
-#endif
-#ifdef TARGET_HAS_PROXIMITY_SENSOR
+/* ---------- */
+/* P3100 only */
 	{ "GP2A Proximity Sensor", "Sharp", 1, SENSOR_TYPE_PROXIMITY,
 		SENSOR_TYPE_PROXIMITY, 5.0f, 5.0f, 0.75f, 0, 0, 0, {}, },
-#endif
+/* ---------- */
 };
 
 int piranha_sensors_count = sizeof(piranha_sensors) / sizeof(struct sensor_t);
@@ -61,15 +66,15 @@ struct piranha_sensors_handlers *piranha_sensors_handlers[] = {
 	&bma250,
 	&yas530,
 	&yas_orientation,
-#ifdef TARGET_DEVICE_P5100
+/* P51xx only */
 	&bh1721,
-#endif
-#ifdef TARGET_DEVICE_P3100
+/* ---------- */
+/* P31xx only */
 	&gp2a_light,
-#endif
-#ifdef TARGET_HAS_PROXIMITY_SENSOR
+/* ---------- */
+/* P3100 only */
 	&gp2a_proximity,
-#endif
+/* ---------- */
 };
 
 int piranha_sensors_handlers_count = sizeof(piranha_sensors_handlers) /
@@ -226,6 +231,42 @@ int piranha_sensors_close(hw_device_t *device)
 	return 0;
 }
 
+void piranha_sensors_setup() {
+	if (setup_done)
+		return;
+
+	char device[16];
+	FILE *f = fopen(DEVICE_VARIANT_SYSFS, "r");
+	if (!f || fgets(device, 16, f) == NULL) {
+		ALOGE("Failed to read " DEVICE_VARIANT_SYSFS ", assuming P51xx\n");
+		strcpy(device, "espresso10");
+	}
+	fclose(f);
+
+	ALOGD("Device: %s", device);
+
+	if (strcmp(device, "espresso10") == 0) {
+		/* Device is P51xx */
+		piranha_sensors_count = 4;
+	} else if (strcmp(device, "espressowifi") == 0) {
+		/* Device is P3110 */
+		piranha_sensors[3] = piranha_sensors[4];
+		piranha_sensors_handlers[3] = piranha_sensors_handlers[4];
+		piranha_sensors_count = 4;
+	} else {
+		/* Device is P3100 */
+		piranha_sensors[3] = piranha_sensors[4];
+		piranha_sensors_handlers[3] = piranha_sensors_handlers[4];
+		piranha_sensors[4] = piranha_sensors[5];
+		piranha_sensors_handlers[4] = piranha_sensors_handlers[5];
+		piranha_sensors_count = 5;
+	}
+
+	piranha_sensors_handlers_count = piranha_sensors_count;
+
+	setup_done = 1;
+}
+
 int piranha_sensors_open(const struct hw_module_t* module, const char *id,
 	struct hw_device_t** device)
 {
@@ -236,6 +277,8 @@ int piranha_sensors_open(const struct hw_module_t* module, const char *id,
 
 	if (module == NULL || device == NULL)
 		return -EINVAL;
+
+	piranha_sensors_setup();
 
 	piranha_sensors_device = (struct piranha_sensors_device *)
 		calloc(1, sizeof(struct piranha_sensors_device));
@@ -278,6 +321,8 @@ int piranha_sensors_get_sensors_list(struct sensors_module_t* module,
 
 	if (sensors_p == NULL)
 		return -EINVAL;
+
+	piranha_sensors_setup();
 
 	*sensors_p = piranha_sensors;
 	return piranha_sensors_count;
