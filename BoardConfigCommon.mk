@@ -94,6 +94,9 @@ BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espresso-common/bluetooth/vnd_espr
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 
+# Liblights
+TARGET_PROVIDES_LIBLIGHT := true
+
 # Sensors
 BOARD_USE_LEGACY_SENSORS_FUSION := false
 
