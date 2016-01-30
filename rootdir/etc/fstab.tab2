@@ -11,7 +11,7 @@
 /dev/block/platform/omap/omap_hsmmc.1/by-name/CACHE             /cache              f2fs        noatime,nodiratime,nosuid,nodev,background_gc=off,inline_xattr,active_logs=2     wait
 
 # vold-managed volumes ("block device" is actually a sysfs devpath)
-/devices/platform/omap/omap_hsmmc.0/mmc_host/mmc1*              auto    auto    defaults    wait,voldmanaged=sdcard1:auto,noemulatedsd
+/devices/platform/omap/omap_hsmmc.0/mmc_host/mmc1*              auto    auto    defaults    voldmanaged=sdcard1:auto,encryptable=userdata
 /devices/platform/omap/musb-omap2430/musb-hdrc/usb1*            auto    auto    defaults    voldmanaged=usbdisk0:auto,noemulatedsd
 
 # zRAM
