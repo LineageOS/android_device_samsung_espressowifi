@@ -22,3 +22,7 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init.espresso.variant.sh:system/bin/init.espresso.variant.sh
+
+# Camera
+PRODUCT_PACKAGES += \
+    Snap
