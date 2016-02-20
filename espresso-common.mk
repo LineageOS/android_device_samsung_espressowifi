@@ -19,9 +19,6 @@ $(call inherit-product, device/samsung/omap4-common/common.mk)
 
 DEVICE_PACKAGE_OVERLAYS += device/samsung/espresso-common/overlay/aosp-common
 
-# The gps config appropriate for this device
-$(call inherit-product, device/common/gps/gps_us_supl.mk)
-
 LOCAL_PATH := device/samsung/espresso-common
 
 # Enable higher-res drawables while keeping mdpi as primary source
@@ -44,6 +41,9 @@ PRODUCT_PACKAGES += \
     init.recovery.espresso.rc
 
 # GPS
+# gps config appropriate for this device
+$(call inherit-product, device/common/gps/gps_us_supl.mk)
+
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/gps.xml:system/etc/gps.xml
 
