@@ -71,8 +71,7 @@ PRODUCT_PACKAGES += \
     camera.omap4 \
     lights.piranha \
     libinvensense_mpl \
-    power.piranha \
-    libsecril-client
+    power.piranha
 
 # Charger
 PRODUCT_PACKAGES += \
@@ -86,9 +85,6 @@ PRODUCT_PACKAGES += \
 # Set default USB interface
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp
-
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.telephony.ril_class=SamsungExynos4RIL
 
 # These are the hardware-specific features
 PRODUCT_COPY_FILES += \
