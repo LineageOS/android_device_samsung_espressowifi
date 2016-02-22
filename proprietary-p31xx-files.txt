@@ -1,3 +1,0 @@
-system/etc/wifi/bcmdhd_apsta.bin
-system/etc/wifi/bcmdhd_mfg.bin
-system/etc/wifi/bcmdhd_sta.bin
