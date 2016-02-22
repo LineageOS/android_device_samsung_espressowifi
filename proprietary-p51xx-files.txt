@@ -1,8 +1,0 @@
-system/bin/bintvoutservice
-system/etc/wifi/bcmdhd_apsta.bin
-system/etc/wifi/bcmdhd_mfg.bin
-system/etc/wifi/bcmdhd_sta.bin
-system/lib/libhdcp.so
-system/lib/libtvoutinterface.so
-system/lib/libtvout_jni.so
-system/lib/libtvoutservice.so

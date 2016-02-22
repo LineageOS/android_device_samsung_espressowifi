@@ -2,7 +2,10 @@ system/bin/gpsd
 system/bin/smc.ini
 system/bin/smc_pa.ift
 system/etc/powervr.ini
+system/etc/wifi/bcmdhd_apsta.bin
+system/etc/wifi/bcmdhd_mfg.bin
 system/etc/wifi/bcmdhd_p2p.bin
+system/etc/wifi/bcmdhd_sta.bin
 system/etc/wifi/nvram_mfg.txt
 system/etc/wifi/nvram_net.txt
 system/lib/libQmageDecoder.so
