@@ -61,10 +61,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     wifi.interface=wlan0 \
     wifi.supplicant_scan_interval=15
 
-# Samsung symbols
-PRODUCT_PACKAGES += \
-    libsamsung_symbols
-
 # Media profiles
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/media_codecs.xml:system/etc/media_codecs.xml \
@@ -99,8 +95,7 @@ PRODUCT_PACKAGES += \
     power.piranha \
     sensors.piranha \
     geomagneticd \
-    orientationd \
-    libsecril-client
+    orientationd
 
 # F2FS filesystem
 PRODUCT_PACKAGES += \
@@ -117,9 +112,6 @@ PRODUCT_PACKAGES += \
 # Samsung dock keyboard
 PRODUCT_PACKAGES += \
     dock_kbd_attach
-
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.telephony.ril_class=SamsungOmap4RIL
 
 # These are the hardware-specific features
 PRODUCT_COPY_FILES += \
