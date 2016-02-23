@@ -1,0 +1,21 @@
+# Variant-Setup script (init.espresso.variant.sh)
+type variant_setup, domain;
+type variant_setup_exec, exec_type, file_type;
+
+init_daemon_domain(variant_setup)
+
+# Run init.espresso.variant.sh
+allow variant_setup shell_exec:file rx_file_perms;
+allow variant_setup variant_setup_exec:file rx_file_perms;
+
+# Talk to init over the property socket
+unix_socket_connect(variant_setup, property, init)
+
+# Allow getprop/setprop for init.espresso.variant.sh
+allow variant_setup system_file:file execute_no_trans;
+allow variant_setup rotation_prop:property_service set;
+
+# Set accelerometer and geomagnetic position via sysfs
+allow variant_setup sysfs:file write;
+
+allow variant_setup self:capability dac_override;

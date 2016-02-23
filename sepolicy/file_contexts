@@ -44,3 +44,6 @@
 
 # Firmwares
 /system/vendor/firmware/ducati-m3.bin       u:object_r:firmware_ducati:s0 
+
+# variant setup
+/system/bin/init\.espresso\.variant\.sh     u:object_r:variant_setup_exec:s0
