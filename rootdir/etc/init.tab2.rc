@@ -357,7 +357,7 @@ service dock_kbd_attach /system/bin/dock_kbd_attach /dev/ttyO3
         oneshot
 
 # Set 7 inch devices as portrait device
-service espresso-variant /init.espresso.variant.sh
+service variant_setup /system/bin/init.espresso.variant.sh
     class main
     user root
     oneshot

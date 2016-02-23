@@ -1,0 +1,3 @@
+# hwrotation prop need a own type to be set on init.espreso.variants.sh,
+# else it would conflict with a neverallow rule
+type rotation_prop, property_type;
