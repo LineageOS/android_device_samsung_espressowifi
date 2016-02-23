@@ -412,6 +412,12 @@ service dock_kbd_attach /system/bin/dock_kbd_attach /dev/ttyO3
     user root
     oneshot
 
+# Set 7 inch devices as portrait device
+service variant_setup /system/bin/init.espresso.variant.sh
+    class main
+    user root
+    oneshot
+
 # LPM
 on property:ro.bootmode=charger
     mount ext4 /dev/block/platform/omap/omap_hsmmc.1/by-name/FACTORYFS /system wait ro

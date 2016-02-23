@@ -35,6 +35,9 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     init.recovery.espresso.rc
 
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/init.espresso.variant.sh:system/bin/init.espresso.variant.sh
+
 # GPS
 # gps config appropriate for this device
 $(call inherit-product, device/common/gps/gps_us_supl.mk)
