@@ -1,0 +1,2 @@
+# label hwrotation prop to set it on init.espreso.variants.sh
+sf.hwrotation u:object_r:rotation_prop:s0
