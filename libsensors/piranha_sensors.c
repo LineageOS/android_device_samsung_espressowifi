@@ -179,9 +179,13 @@ int piranha_sensors_poll(struct sensors_poll_device_t *dev,
 	n = 0;
 
 	do {
-		poll_rc = poll(device->poll_fds, device->poll_fds_count, n > 0 ? 0 : -1);
-		if (poll_rc < 0)
-			return -1;
+		do {
+			poll_rc = poll(device->poll_fds, device->poll_fds_count, n > 0 ? 0 : -1);
+		} while (poll_rc < 0 && errno == EINTR);
+		if (poll_rc < 0) {
+			ALOGE("poll() failed (%s)", strerror(errno));
+			return -errno;
+		}
 
 		for (i = 0; i < device->poll_fds_count; i++) {
 			if (!(device->poll_fds[i].revents & POLLIN))
