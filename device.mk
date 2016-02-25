@@ -22,7 +22,9 @@ DEVICE_PACKAGE_OVERLAYS += device/samsung/espresso/overlay/aosp
 
 # Audio
 PRODUCT_COPY_FILES += \
-    device/samsung/espresso/audio/audio_policy.conf:system/etc/audio_policy.conf
+    device/samsung/espresso/audio/audio_policy.conf:system/etc/audio_policy.conf \
+    device/samsung/espresso/audio/tiny_hw_espressowifi.xml:system/etc/sound/espressowifi \
+    device/samsung/espresso/audio/tiny_hw_espresso10wifi.xml:system/etc/sound/espresso10wifi
 
 # IR
 PRODUCT_PACKAGES += \
