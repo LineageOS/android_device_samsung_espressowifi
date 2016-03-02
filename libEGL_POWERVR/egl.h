@@ -2,11 +2,23 @@
 #define __PVREGL_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+#define EGL_FALSE	0
+#define EGL_TRUE	1
+
+#define EGL_SURFACE_TYPE	0x3033
+#define EGL_NONE	0x3038
+#define EGL_RENDERABLE_TYPE	0x3040
+#define EGL_RECORDABLE_ANDROID	0x3142
+
+#define EGL_PBUFFER_BIT	0x0001
+#define EGL_OPENGL_ES2_BIT	0x0004
 
 typedef int32_t EGLint;
 typedef unsigned int EGLBoolean;
