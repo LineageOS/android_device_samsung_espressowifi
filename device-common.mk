@@ -77,6 +77,7 @@ PRODUCT_PACKAGES += \
     camera.omap4 \
     e2fsck \
     lights.omap4 \
+    libEGL_POWERVR_SGX54X \
     libinvensense_mpl \
     power.piranha \
     sensors.piranha \
