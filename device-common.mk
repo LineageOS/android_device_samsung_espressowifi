@@ -82,6 +82,7 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     camera.omap4 \
     lights.omap4 \
+    libEGL_POWERVR_SGX54X \
     libinvensense_mpl \
     power.piranha \
     sensors.piranha \
