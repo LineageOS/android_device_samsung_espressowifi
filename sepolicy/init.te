@@ -1,3 +1,11 @@
-# init
+# allow insmod
 allow init self:capability sys_module;
-allow init self:process execmem;
+
+# chmod/chown rfkill device
+allow init sysfs_bluetooth_writable:file getattr;
+
+# allow creating /sdcard symlink
+allow init tmpfs:lnk_file create;
+
+# For mounting debugfs
+allow init debugfs:dir mounton;
