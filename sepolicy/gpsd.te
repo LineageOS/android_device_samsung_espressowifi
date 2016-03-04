@@ -1,5 +1,4 @@
 # gpsd - GPS daemon
-allow gpsd rild:unix_stream_socket { connectto };
 allow gpsd self:process { execmem };
 allow gpsd sysfs_wake_lock:file { read write };
 
