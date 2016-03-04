@@ -27,17 +27,20 @@ DEVICE_PACKAGE_OVERLAYS += \
 PRODUCT_AAPT_CONFIG := large
 PRODUCT_AAPT_PREF_CONFIG := mdpi
 
-# Ramdisk
-PRODUCT_PACKAGES += \
-    fstab.espresso \
-    init.espresso.sensors.rc \
-    init.espresso.usb.rc \
-    init.espresso.rc \
-    ueventd.espresso.rc
+# Init files
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/init.espresso.rc:root/init.espresso.rc \
+    $(LOCAL_PATH)/rootdir/init.espresso.sensors.rc:root/init.espresso.sensors.rc \
+    $(LOCAL_PATH)/rootdir/init.espresso.usb.rc:root/init.espresso.usb.rc \
+    $(LOCAL_PATH)/rootdir/ueventd.espresso.rc:root/ueventd.espresso.rc
+
+# Fstab
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/fstab.espresso:root/fstab.espresso
 
 # Recovery Ramdisk
 PRODUCT_PACKAGES += \
-    init.recovery.espresso.rc
+    $(LOCAL_PATH)/recovery/root/init.recovery.espresso.rc:recovery/root/init.recovery.espresso.rc
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init.espresso.variant.sh:system/bin/init.espresso.variant.sh
