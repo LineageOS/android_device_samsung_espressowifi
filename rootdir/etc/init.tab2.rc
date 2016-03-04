@@ -33,6 +33,9 @@ on fs
     write /sys/block/mmcblk0/queue/read_ahead_kb 256
 
 on post-fs-data
+    # sensors
+    mkdir /data/sensors 0770 system system
+
     # dmrpc
     mkdir /data/smc 0770 drmrpc drmrpc
     chown drmrpc drmrpc /data/smc/counter.bin
