@@ -1,3 +1,4 @@
+import init.omap4.rc
 import init.espresso.sensors.rc
 import init.espresso.usb.rc
 
@@ -46,15 +47,8 @@ on fs
     restorecon /efs/imei/mps_code.dat
     restorecon /efs/wifi/.mac.info
 
-    # change permissions for ION driver
-    chmod 0777 /dev/ion
-
-    # PVR
-    chmod 0666 /dev/pvrsrvkm
-
     # pvr module
     insmod /system/lib/modules/pvrsrvkm_sgx540_120.ko
-    start pvrsrvinit
 
     setprop ro.crypto.fuse_sdcard true
 
@@ -110,14 +104,6 @@ on post-fs-data
 
 on boot
     mount debugfs /sys/kernel/debug /sys/kernel/debug
-
-# initialize the SGX driver
-service pvrsrvinit /system/bin/pvrsrvinit
-    class core
-    user root
-    group root
-    oneshot
-    disabled
 
 # SMC Service
 service tf_daemon /system/bin/tf_daemon \
@@ -217,10 +203,6 @@ service cpboot-daemon /system/vendor/bin/cbd -d -p 8
     class main
     user root
     group radio cache inet misc audio sdcard_rw log sdcard_r
-    disabled
-
-on property:init.svc.pvrsrvinit=stopped
-    start cpboot-daemon
 
 # GPS
 service gpsd /system/bin/gpsd -c /system/etc/gps.xml
@@ -254,9 +236,6 @@ on property:ro.bootmode=charger
     write /sys/class/android_usb/android0/iManufacturer samsung
     write /sys/class/android_usb/android0/iProduct $(ro.product.model)
     start adbd
-
-on property:ro.bootmode=charger
-    start pvrsrvinit
 
 on property:ro.bootmode=charger
     class_start charger

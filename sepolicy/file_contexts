@@ -1,6 +1,3 @@
-# GFX
-/dev/dsscomp                                u:object_r:video_device:s0
-
 # RIL
 /dev/umts_boot0                             u:object_r:radio_device:s0
 /dev/umts_boot1                             u:object_r:radio_device:s0
@@ -20,10 +17,6 @@
 # Wifi
 /dev/rfkill                                 u:object_r:rfkill_device:s0
 /efs/wifi/.mac.info                         u:object_r:wifi_data_file:s0
-
-# System binaries
-/system/bin/pvrsrvinit                      u:object_r:pvrsrvinit_exec:s0
-/system/vendor/bin/pvrsrvctl_SGX540_120     u:object_r:pvrsrvinit_exec:s0
 
 # Firmwares
 /system/vendor/firmware/ducati-m3.bin       u:object_r:firmware_ducati:s0
