@@ -1,0 +1,2 @@
+# sadly, the EFS partition is mounted as rw, so it makes sense to check it
+allow fsck efs_block_device:blk_file rw_file_perms;
