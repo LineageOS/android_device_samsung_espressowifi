@@ -94,7 +94,7 @@ BOARD_SEPOLICY_DIRS += \
     device/samsung/espressowifi/sepolicy
 
 BOARD_SEPOLICY_UNION += \
-    bluetooth.te \
+    cpboot-daemon.te \
     device.te \
     dock_kbd_attach.te \
     domain.te \
@@ -103,11 +103,12 @@ BOARD_SEPOLICY_UNION += \
     geomagneticd.te \
     gpsd.te \
     init.te \
+    mediaserver.te \
     orientationd.te \
     pvrsrvinit.te \
     smc_pa.te \
-    sysinit.te \
-    wpa_supplicant.te
+    system_server.te \
+    vold.te
 
 # Recovery
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
