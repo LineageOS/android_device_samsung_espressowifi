@@ -4,9 +4,14 @@ type geomagneticd_exec, exec_type, file_type;
 
 init_daemon_domain(geomagneticd)
 
+# the sensor is an input device
 allow geomagneticd input_device:chr_file { read open ioctl };
 allow geomagneticd input_device:dir { search read open };
-allow geomagneticd self:process { execmem };
+
+# store/read calibration data
 allow geomagneticd sensor_data_file:dir { write add_name remove_name create };
 allow geomagneticd sensor_data_file:file { create open read write getattr setattr rename };
+
+# read/write calibration offsets
+# TODO: create own label
 allow geomagneticd sysfs:file { write };
