@@ -71,7 +71,7 @@ on fs
     # increase read-ahead value to 256 kb
     write /sys/block/mmcblk0/queue/read_ahead_kb 256
 
-    mount debugfs /sys/kernel/debug /sys/kernel/debug
+    mount debugfs debugfs /sys/kernel/debug
 
 on post-fs-data
     # we will remap this as /storage/sdcard0 with the sdcard fuse tool
@@ -116,17 +116,13 @@ on post-fs-data
     chmod 0660 /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
-    restorecon /sys/class/rfkill/rfkill0/state
-    restorecon /sys/class/rfkill/rfkill0/type
 
 # for samsung factory.
     chown radio radio /efs/bluetooth
     chmod 0755 /efs/bluetooth
     chmod 0644 /efs/bluetooth/bt_addr
 
-# Change permission for sensor rev00
-    chmod 755 /system/bin/geomagneticd
-
+    # Change permission for sensor
     chown system input /sys/class/input/input2/enable
     chown system input /sys/class/input/input2/poll_delay
 
@@ -394,6 +390,7 @@ service cpboot-daemon /sbin/cbd -d -p 8
     class main
     user root
     group radio cache inet misc audio sdcard_rw log sdcard_r
+    seclabel u:r:cpboot-daemon:s0
     disabled
 
 on property:init.svc.pvrsrvinit=stopped
