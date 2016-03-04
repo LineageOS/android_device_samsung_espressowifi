@@ -27,8 +27,8 @@
 #ifndef _GEOMAGNETICD_H_
 #define _GEOMAGNETICD_H_
 
-#define GEOMAGNETICD_CONFIG_PATH		"/data/system/yas.cfg"
-#define GEOMAGNETICD_CONFIG_BACKUP_PATH		"/data/system/yas-backup.cfg"
+#define GEOMAGNETICD_CONFIG_PATH		"/data/sensors/yas.cfg"
+#define GEOMAGNETICD_CONFIG_BACKUP_PATH		"/data/sensors/yas-backup.cfg"
 
 struct geomagneticd_data {
 	int magnetic_extrema[2][3];
