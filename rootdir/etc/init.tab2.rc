@@ -93,17 +93,13 @@ on post-fs-data
     chmod 0660 /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
-    restorecon /sys/class/rfkill/rfkill0/state
-    restorecon /sys/class/rfkill/rfkill0/type
 
 # for samsung factory.
     chown radio radio /efs/bluetooth
     chmod 0755 /efs/bluetooth
     chmod 0644 /efs/bluetooth/bt_addr
 
-# Change permission for sensor rev00
-    chmod 755 /system/bin/geomagneticd
-
+    # Change permission for sensor
     chown system input /sys/class/input/input2/enable
     chown system input /sys/class/input/input2/poll_delay
 
