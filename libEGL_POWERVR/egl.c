@@ -37,62 +37,90 @@ EGLBoolean eglGetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size,
 
 EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config)
 {
-	/* When the following conditions are met...
+	/* We have two issues to work around here.
+	 *
+	 * The first is about EGL_RECORDABLE_ANDROID:
+	 * When the following conditions are met...
 	 * 1. EGL_PBUFFER_BIT is set in EGL_SURFACE_TYPE
 	 * 2. EGL_OPENGL_ES2_BIT is set in EGL_RENDERABLE_TYPE
 	 * ...EGL_RECORDABLE_ANDROID is forced to EGL_FALSE.
 	 * Why this happens is unknown, but the end result is no configs get returned.
 	 * Code meeting the above conditions seems to work fine without EGL_RECORDABLE_ANDROID,
 	 * so in this shim we'll drop it on their behalf so they actually get an EGLConfig.
+	 *
+	 * The second is about EGL_FRAMEBUFFER_TARGET_ANDROID:
+	 * There is not a single damn user of this anywhere except surfaceflinger.
+	 * What's happening is our drivers don't recognize it, and so don't return
+	 * a config. End result is it has to retry eglChooseConfig 3 times. It's
+	 * not actually a requirement though, the issue is simply the drivers failing
+	 * since they don't *recognize* the attribute.
+	 * So we will drop this for surfaceflinger to avoid 2 extra calls to eglChooseConfig.
+	 * Considering this is only used when surfaceflinger starts up, we'll use the compiler
+	 * hints to indicate it's rare, to optimize for basically every other call to us.
 	 */
-	bool renderable_type_es2 = false, surface_type_pbuffer = false;
-	int attriblist_length = 0, recordable_attrib_val_pos = -1;
+	bool renderabletype_es2 = false, surfacetype_pbuffer = false;
+	int attrib_count = 0, recordable_val_pos = -1, fbtarget_pos = -1;
 
 	/* attrib_list is terminated by EGL_NONE key */
-	while( attrib_list[attriblist_length++] != EGL_NONE )
+	while( attrib_list[attrib_count++] != EGL_NONE )
 	{
-		if( attrib_list[attriblist_length-1] == EGL_RENDERABLE_TYPE )
+		if( attrib_list[attrib_count-1] == EGL_RENDERABLE_TYPE )
 		{
 			/* if EGL_RENDERABLE_TYPE is specified, usually EGL_OPENGL_ES2_BIT is set. */
-			if( (attrib_list[attriblist_length] & EGL_OPENGL_ES2_BIT) != 0 )
-				renderable_type_es2 = true;
-			else
-				goto skip_override;
+			if( (attrib_list[attrib_count] & EGL_OPENGL_ES2_BIT) != 0 )
+				renderabletype_es2 = true;
 		}
-		else if( attrib_list[attriblist_length-1] == EGL_SURFACE_TYPE )
+		else if( attrib_list[attrib_count-1] == EGL_SURFACE_TYPE )
 		{
-			/* EGL_PBUFFER_BIT is rarely used, so point the if to the skip here */
-			if( (attrib_list[attriblist_length] & EGL_PBUFFER_BIT) == 0 )
-				goto skip_override;
-			else
-				surface_type_pbuffer = true;
+			/* the pbuffer bit seems to be rarely specified though. */
+			if( (attrib_list[attrib_count] & EGL_PBUFFER_BIT) != 0 )
+				surfacetype_pbuffer = true;
 		}
-		else if( attrib_list[attriblist_length-1] == EGL_RECORDABLE_ANDROID )
+		else if( attrib_list[attrib_count-1] == EGL_RECORDABLE_ANDROID )
 		{
 			/* It is generally useless to specify EGL_RECORDABLE_ANDROID
 			 * as something other than EGL_TRUE; expect that to be the case */
-			if( CC_LIKELY( attrib_list[attriblist_length] == EGL_TRUE ) )
-				recordable_attrib_val_pos = attriblist_length;
-			else
-				goto skip_override;
+			if( CC_LIKELY( attrib_list[attrib_count] == EGL_TRUE ) )
+				recordable_val_pos = attrib_count;
+		}
+		else if( CC_UNLIKELY( attrib_list[attrib_count-1] == EGL_FRAMEBUFFER_TARGET_ANDROID ) )
+		{
+			fbtarget_pos = attrib_count - 1;
 		}
 
 		/* the array is k/v pairs; for every key we can skip an iteration */
-		++attriblist_length;
+		++attrib_count;
 	}
 
-	if( recordable_attrib_val_pos != -1 && surface_type_pbuffer && renderable_type_es2 )
+	if( recordable_val_pos != -1 && (!surfacetype_pbuffer || !renderabletype_es2) )
+		recordable_val_pos = -1;
+
+	/* It appears that surfaceflinger is snappier without a GL ES2 config.
+	 * For now, lets avoid fixing this for GL ES2. End result is surfaceflinger
+	 * will still avoid *one* extra call to eglChooseConfig which is nice. */
+#ifndef FB_TARGET_FIX_EGL2_ALSO
+	if( CC_UNLIKELY( fbtarget_pos != -1 ) && renderabletype_es2 )
+		fbtarget_pos = -1;
+#endif
+
+	if( recordable_val_pos != -1 || CC_UNLIKELY( fbtarget_pos != -1 ) )
 	{
-		/* we've officially met all the conditions for an override of EGL_RECORDABLE_ANDROID.
-		 * rather than remove it completely, we can just override its value to "EGL_DONT_CARE". */
-		EGLint override_attrib_list[attriblist_length];
-		memcpy(override_attrib_list, attrib_list, sizeof(EGLint) * attriblist_length);
-		override_attrib_list[recordable_attrib_val_pos] = EGL_DONT_CARE;
+		EGLint override_attrib_list[attrib_count];
+		memcpy( override_attrib_list, attrib_list, attrib_count * sizeof(EGLint) );
+
+		if( CC_LIKELY( recordable_val_pos != -1 ) )
+			override_attrib_list[recordable_val_pos] = EGL_DONT_CARE;
+
+		if( CC_UNLIKELY( fbtarget_pos != -1 ) )
+		{
+			memmove( &override_attrib_list[fbtarget_pos],
+			         &override_attrib_list[fbtarget_pos+2],
+			         (attrib_count - fbtarget_pos - 2) * sizeof(EGLint) );
+		}
 
 		return IMGeglChooseConfig(dpy, override_attrib_list, configs, config_size, num_config);
 	}
 
-skip_override:
 	return IMGeglChooseConfig(dpy, attrib_list, configs, config_size, num_config);
 }
 
