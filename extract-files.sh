@@ -52,8 +52,6 @@ done
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOCAL_PATH := vendor/samsung/__COMMON__
-
 PRODUCT_COPY_FILES += \\
 EOF
 
@@ -64,7 +62,7 @@ for FILE in `cat $COMMONPROPS | grep -v ^# | grep -v ^$`; do
     if [ $COUNT = "0" ]; then
         LINEEND=""
     fi
-    echo "    \$(LOCAL_PATH)/proprietary/$FILE:$FILE$LINEEND" >> $COMMONMAKEFILE
+    echo "    \vendor/samsung/espresso-common/proprietary/$FILE:$FILE$LINEEND" >> $COMMONMAKEFILE
 done
 
 
@@ -82,9 +80,6 @@ done
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Pick up overlay for features that depend on non-open-source files
-DEVICE_PACKAGE_OVERLAYS += vendor/__VENDOR__/__COMMON__/overlay
 
 \$(call inherit-product, vendor/__VENDOR__/__COMMON__/common-vendor-blobs.mk)
 EOF
