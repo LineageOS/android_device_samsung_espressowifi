@@ -251,7 +251,7 @@ void piranha_sensors_setup() {
 		ALOGE("Failed to read " DEVICE_VARIANT_SYSFS ", assuming P51xx\n");
 		strcpy(device, "espresso10");
 	}
-	fclose(f);
+	if (f) fclose(f);
 
 	ALOGD("Device: %s", device);
 
