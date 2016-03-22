@@ -83,15 +83,15 @@ BOARD_HAVE_SAMSUNG_WIFI          := true
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/espresso/bluetooth
-BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espresso/bluetooth/vnd_espresso.txt
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/espressowifi/bluetooth
+BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espressowifi/bluetooth/vnd_espresso.txt
 
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 
 # Selinux
 BOARD_SEPOLICY_DIRS += \
-    device/samsung/espresso/sepolicy
+    device/samsung/espressowifi/sepolicy
 
 BOARD_SEPOLICY_UNION += \
     bluetooth.te \
@@ -114,7 +114,7 @@ BOARD_SEPOLICY_UNION += \
 # Recovery
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
 BOARD_SUPPRESS_EMMC_WIPE := true
-TARGET_RECOVERY_FSTAB := device/samsung/espresso/rootdir/etc/fstab.tab2
-TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espresso
+TARGET_RECOVERY_FSTAB := device/samsung/espressowifi/rootdir/etc/fstab.tab2
+TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espressowifi
 RECOVERY_FSTAB_VERSION := 2
 BOARD_HAS_DOWNLOAD_MODE := true
