@@ -17,9 +17,9 @@
 # Include common omap4 makefile
 $(call inherit-product, hardware/ti/omap4/omap4.mk)
 
-DEVICE_PACKAGE_OVERLAYS += device/samsung/espresso/overlay/aosp-common
+DEVICE_PACKAGE_OVERLAYS += device/samsung/espressowifi/overlay/aosp-common
 
-LOCAL_PATH := device/samsung/espresso
+LOCAL_PATH := device/samsung/espressowifi
 
 # Enable higher-res drawables while keeping mdpi as primary source
 PRODUCT_AAPT_CONFIG := normal large tvdpi hdpi

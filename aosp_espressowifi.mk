@@ -25,10 +25,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
 # Inherit device configuration
-$(call inherit-product, device/samsung/espresso/device.mk)
+$(call inherit-product, device/samsung/espressowifi/device.mk)
 
-PRODUCT_NAME := aosp_espresso
-PRODUCT_DEVICE := espresso
+PRODUCT_NAME := aosp_espressowifi
+PRODUCT_DEVICE := espressowifi
 PRODUCT_BRAND := Android
 PRODUCT_MODEL := Galaxy Tab 2
 PRODUCT_MANUFACTURER := Samsung

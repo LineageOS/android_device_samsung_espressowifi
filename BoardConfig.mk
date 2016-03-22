@@ -15,7 +15,7 @@
 #
 
 # Include common espresso BoardConfig
--include device/samsung/espresso/BoardConfigCommon.mk
+-include device/samsung/espressowifi/BoardConfigCommon.mk
 
 # assert
-TARGET_OTA_ASSERT_DEVICE := espresso,p3110,GT-P3110,p3113,GT-P3113,espressowifi,espressowifixx,p5110,GT-P5110,p5113,GT-P5113,espresso10wifi,espresso10wifixx
+TARGET_OTA_ASSERT_DEVICE := espresso-common,p3110,GT-P3110,p3113,GT-P3113,espressowifi,espressowifixx,p5110,GT-P5110,p5113,GT-P5113,espresso10wifi,espresso10wifixx
