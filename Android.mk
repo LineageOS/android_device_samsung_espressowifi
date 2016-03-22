@@ -23,6 +23,6 @@
 
 LOCAL_PATH := $(call my-dir)
 
-ifneq ($(filter espresso espresso3g,$(TARGET_DEVICE)),)
+ifneq ($(filter espressowifi espresso3g,$(TARGET_DEVICE)),)
 include $(call all-makefiles-under,$(LOCAL_PATH))
 endif
