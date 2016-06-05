@@ -65,7 +65,7 @@
 #define VX_WB_SAMPLING_RATE 16000
 
 /* product-specific defines */
-#define DEVICE_VARIANT_SYSFS "/sys/board_properties/type"
+#define DEVICE_VARIANT_SYSFS "/sys/board/type"
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
