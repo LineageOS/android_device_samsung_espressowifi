@@ -24,33 +24,12 @@ on init
     symlink /storage/usbdisk0 /usbdisk0
     symlink /storage/usbdisk0 /mnt/usbdisk0
 
-# Vibetonz
-    export VIBE_PIPE_PATH /dev/pipes
-    mkdir /dev/pipes 0771 shell shell
-
-# Vibetonz
-    chmod 0660 /dev/tspdrv
-    chown root shell /dev/tspdrv
-
-# change permissions for ION driver
-    chmod 0777 /dev/ion
-
-# PVR
-    chmod 0666 /dev/pvrsrvkm
-
 on fs
-    mkdir /efs
+    mkdir /efs 0775 radio system
+
     mount_all /fstab.espresso
 
- # We chown/chmod /efs because mount is run as root + defaults
-    chown radio system /efs
-    chmod 0775 /efs
-
-    setprop ro.crypto.fuse_sdcard true
-
-    mount debugfs /sys/kernel/debug /sys/kernel/debug
-
-# Restorecon
+    # Restorecon
     restorecon /efs/nv_data.bin
     restorecon /efs/nv_data.bin.md5
     restorecon /efs/.nv_core.bak
@@ -66,10 +45,17 @@ on fs
     restorecon /efs/imei/mps_code.dat
     restorecon /efs/wifi/.mac.info
 
-# pvr module
-    insmod /system/lib/modules/pvrsrvkm_sgx540_120.ko
+    # change permissions for ION driver
+    chmod 0777 /dev/ion
 
+    # PVR
+    chmod 0666 /dev/pvrsrvkm
+
+    # pvr module
+    insmod /system/lib/modules/pvrsrvkm_sgx540_120.ko
     start pvrsrvinit
+
+    setprop ro.crypto.fuse_sdcard true
 
 on post-fs-data
     # we will remap this as /storage/sdcard0 with the sdcard fuse tool
@@ -78,32 +64,17 @@ on post-fs-data
     mkdir /data/misc/wifi 0770 wifi system
     mkdir /data/misc/wifi/sockets 0770 wifi wifi
 
-# dmrpc
+    # dmrpc
     mkdir /data/smc 0770 drmrpc drmrpc
     chown drmrpc drmrpc /data/smc/counter.bin
     chown drmrpc drmrpc /data/smc/storage.bin
     chown drmrpc drmrpc /data/smc/system.bin
 
-# radio
-    mkdir /data/misc/dhcp 0775 dhcp dhcp
-    mkdir /data/misc/radio 0771 radio system
+    # radio
     mkdir /data/misc/radio/hatp 0771 radio system
     chown radio radio /data/misc/radio
 
-    chown dhcp dhcp /data/misc/dhcp
-
-    write /sys/devices/system/cpu/cpu0/cpufreq/screen_off_max_freq 800000
-    chmod 0664 /sys/devices/system/cpu/cpu0/cpufreq/screen_off_max_freq
-
-#DVFS Lock
-    chown radio system /sys/power/cpufreq_min_limit
-    chown radio system /sys/power/cpufreq_max_limit
-    chown radio system /sys/power/cpufreq_table
-    chmod 0664  /sys/power/cpufreq_min_limit
-    chmod 0664  /sys/power/cpufreq_max_limit
-    chmod 0664  /sys/power/cpufreq_table
-
-# permissions for bluetooth.
+    # Bluetooth.
     setprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"
     chown bluetooth net_bt_stack ro.bt.bdaddr_path
     chown bluetooth net_bt_stack /dev/ttyO1
@@ -114,12 +85,7 @@ on post-fs-data
     restorecon /sys/class/rfkill/rfkill0/state
     restorecon /sys/class/rfkill/rfkill0/type
 
-# for samsung factory.
-    chown radio radio /efs/bluetooth
-    chmod 0755 /efs/bluetooth
-    chmod 0644 /efs/bluetooth/bt_addr
-
-# Change permission for sensor rev00
+    # Change permission for sensor rev00
     chmod 755 /system/bin/geomagneticd
 
     chown system input /sys/class/input/input2/enable
@@ -223,23 +189,11 @@ on post-fs-data
     chown system radio /sys/class/sensors/light_sensor/vendor
     chown system radio /sys/class/sensors/light_sensor/name
 
-# Change permission for TSP
-    chown system radio /sys/class/sec/tsp/cmd
-    chown system radio /sys/class/sec/tsp/cmd_status
-    chown system radio /sys/class/sec/tsp/cmd_result
-    chown media_rw media_rw /sys/class/sec/tsp/set_jitter
-
-# Change permission for switch
-    chmod 0660 /sys/class/sec/switch/uart_sel
-    chmod 0660 /sys/class/sec/switch/usb_sel
+    # Change permission for switch
     chmod 0600 /sys/class/sec/switch/jig_on
-
-    chown system radio /sys/class/sec/switch/uart_sel
-    chown system radio /sys/class/sec/switch/usb_sel
     chown radio radio /sys/class/sec/switch/jig_on
-    chown system radio /sys/class/sec/switch/adc
 
-# create data/gps for GPS demon
+    # create data/gps for GPS demon
     chown root system /dev/ttyO0
     chmod 0660 /dev/ttyO0
     chown root system /sys/class/sec/gps/GPS_PWR_EN/value
@@ -249,31 +203,20 @@ on post-fs-data
     mkdir /data/gps 771 system system
     chown system system /data/gps
 
-#Change permission for backlight and lcd
+    # Change permission for backlight
     chown system system /sys/class/backlight/panel/brightness
-    chown system radio /sys/class/lcd/panel/lcd_type
-    chown system radio /sys/class/lcd/panel/lcd_power
 
-# IrLED
+    # IrLED
     chown system system /sys/class/sec/sec_ir/ir_send
     chown system system /sys/class/sec/sec_ir/check_ir
 
-# Battery
-    chown system radio /sys/class/power_supply/battery/batt_reset_soc
-    chmod 0664 /sys/class/power_supply/battery/batt_reset_soc
-
-# for wifi
+    # for wifi
     mkdir /efs/wifi 0775 system radio
-
-# for hdcp, amwbr
-    mkdir /data/misc/radio 0775 radio system
-
-# for hdmi factory test
-    chown radio system /sys/devices/platform/omapdss/display1/sec_timing
 
     setprop vold.post_fs_data_done 1
 
 on boot
+    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
 # initialize the SGX driver
 service pvrsrvinit /system/bin/pvrsrvinit
