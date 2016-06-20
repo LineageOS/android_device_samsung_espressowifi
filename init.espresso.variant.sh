@@ -5,6 +5,7 @@
 export PATH=/system/bin
 
 DEVICE=/sys/board_properties/type
+BB=/system/xbin/busybox
 
 if [ -f "$DEVICE" ]
 then
@@ -18,11 +19,11 @@ then
             echo 1 > /sys/devices/virtual/sec/tsp/pivot
 
             # set accelerometer position
-            position=$(find /sys/devices/virtual/input/ -type f -name name | xargs grep '^accelerometer$' | sed 's@name:accelerometer@position@')
+            position=$($BB find /sys/devices/virtual/input/ -type f -name name | $BB xargs $BB grep '^accelerometer$' | $BB sed 's@name:accelerometer@position@')
             echo -n 6 > $position
 
             # set geomagnetic position
-            position=$(find /sys/devices/platform/omap/omap_i2c.4/i2c-4/4-002e/input/ -type f -name name | xargs grep '^geomagnetic$' | sed 's@name:geomagnetic@position@')
+            position=$($BB find /sys/devices/platform/omap/omap_i2c.4/i2c-4/4-002e/input/ -type f -name name | $BB xargs $BB grep '^geomagnetic$' | $BB sed 's@name:geomagnetic@position@')
             echo -n 6 > $position
             ;;
   esac
