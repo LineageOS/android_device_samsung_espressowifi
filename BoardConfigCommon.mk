@@ -15,6 +15,9 @@
 # limitations under the License.
 #
 
+# Inherit CM specific board config
+-include device/samsung/espressowifi/BoardConfigCM.mk
+
 # Inherit common omap4 board config
 -include hardware/ti/omap4/BoardConfigCommon.mk
 
@@ -22,19 +25,18 @@ TARGET_SPECIFIC_HEADER_PATH += device/samsung/espressowifi/include
 
 TARGET_NO_BOOTLOADER := true
 
-TARGET_BOARD_OMAP_CPU := 4430
 TARGET_BOARD_PLATFORM := omap4
 TARGET_BOARD_PLATFORM_VARIANT := omap4-next
 TARGET_BOOTLOADER_BOARD_NAME := piranha
 
 # Inline kernel building
 TARGET_KERNEL_SOURCE := kernel/samsung/espresso10
-TARGET_KERNEL_CONFIG := espresso_defconfig
+TARGET_KERNEL_CONFIG := espresso_kitkat_defconfig
 BOARD_NAND_PAGE_SIZE := 4096
 BOARD_NAND_SPARE_SIZE := 128
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_BASE := 0x40000000
-BOARD_KERNEL_CMDLINE :=
+BOARD_KERNEL_CMDLINE := androidboot.hardware=espresso
 
 # External SGX Module
 SGX_MODULES:
@@ -56,16 +58,6 @@ BOARD_FLASH_BLOCK_SIZE := 4096
 # Egl
 BOARD_EGL_CFG := device/samsung/espressowifi/configs/egl.cfg
 
-# Boot Animation
-TARGET_BOOTANIMATION_PRELOAD := true
-TARGET_BOOTANIMATION_USE_RGB565 := true
-
-# Vold
-BOARD_VOLD_MAX_PARTITIONS := 12
-BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
-BOARD_VOLD_DISC_HAS_MULTIPLE_MAJORS := true
-TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/class/android_usb/f_mass_storage/lun%d/file"
-
 # Wifi
 BOARD_WLAN_DEVICE                := bcmdhd
 WPA_SUPPLICANT_VERSION           := VER_0_8_X
@@ -80,10 +72,7 @@ WIFI_DRIVER_FW_PATH_AP           := "/system/etc/wifi/bcmdhd_apsta.bin"
 WIFI_DRIVER_FW_PATH_P2P          := "/system/etc/wifi/bcmdhd_p2p.bin"
 WIFI_DRIVER_MODULE_NAME          := "bcmdhd"
 WIFI_DRIVER_MODULE_ARG           := "firmware_path=/system/etc/wifi/bcmdhd_sta.bin nvram_path=/system/etc/wifi/nvram_net.txt"
-WIFI_DRIVER_MODULE_AP_ARG        := "firmware_path=/system/etc/wifi/bcmdhd_apsta.bin nvram_path=/system/etc/wifi/nvram_net.txt"
 WIFI_BAND                        := 802_11_ABG
-BOARD_HAVE_SAMSUNG_WIFI          := true
-BOARD_NO_APSME_ATTR              := true
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
@@ -93,7 +82,7 @@ BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espressowifi/bluetooth/vnd_espress
 
 # Selinux
 BOARD_SEPOLICY_DIRS += \
-    device/samsung/espressowifi/selinux
+    device/samsung/espressowifi/sepolicy
 
 BOARD_SEPOLICY_UNION += \
     file_contexts \
@@ -106,13 +95,6 @@ BOARD_SEPOLICY_UNION += \
 
 # Recovery
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
-BOARD_UMS_LUNFILE := "/sys/class/android_usb/f_mass_storage/lun0/file"
-BOARD_HAS_NO_SELECT_BUTTON := true
-BOARD_RECOVERY_SWIPE := true
 BOARD_SUPPRESS_EMMC_WIPE := true
 TARGET_RECOVERY_FSTAB := device/samsung/espressowifi/rootdir/etc/fstab.tab2
-TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espressowifi
 RECOVERY_FSTAB_VERSION := 2
-
-# Charging mode
-BOARD_CHARGER_RES := device/samsung/espressowifi/res/charger

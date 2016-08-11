@@ -14,12 +14,15 @@
 # limitations under the License.
 #
 
+LOCAL_PATH := device/samsung/espressowifi
+
+TARGET_BOARD_OMAP_CPU := 4430
+
 # Include common omap4 makefile
 $(call inherit-product, hardware/ti/omap4/omap4.mk)
 
-DEVICE_PACKAGE_OVERLAYS += device/samsung/espressowifi/overlay/aosp-common
-
-LOCAL_PATH := device/samsung/espressowifi
+DEVICE_PACKAGE_OVERLAYS += \
+    $(LOCAL_PATH)/overlay/aosp-common
 
 # Enable higher-res drawables while keeping mdpi as primary source
 PRODUCT_AAPT_CONFIG := normal large tvdpi hdpi
