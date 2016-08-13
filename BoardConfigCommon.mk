@@ -25,8 +25,6 @@ TARGET_SPECIFIC_HEADER_PATH += device/samsung/espressowifi/include
 
 TARGET_NO_BOOTLOADER := true
 
-TARGET_BOARD_PLATFORM := omap4
-TARGET_BOARD_PLATFORM_VARIANT := omap4-next
 TARGET_BOOTLOADER_BOARD_NAME := piranha
 
 # Inline kernel building
@@ -80,7 +78,7 @@ BOARD_HAVE_BLUETOOTH_BCM := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/espressowifi/bluetooth
 BOARD_BLUEDROID_VENDOR_CONF := device/samsung/espressowifi/bluetooth/vnd_espresso.txt
 
-# Selinux
+# SELinux
 BOARD_SEPOLICY_DIRS += \
     device/samsung/espressowifi/sepolicy
 

@@ -352,9 +352,9 @@ service gpsd /system/bin/gpsd -c /system/etc/gps.xml
 
 # Keyboard
 service dock_kbd_attach /system/bin/dock_kbd_attach /dev/ttyO3
-        class main
-        user root
-        oneshot
+    class main
+    user root
+    oneshot
 
 # Set 7 inch devices as portrait device
 service variant_setup /system/bin/init.espresso.variant.sh
