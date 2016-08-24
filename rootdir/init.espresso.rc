@@ -3,8 +3,6 @@ import init.espresso.sensors.rc
 import init.espresso.usb.rc
 
 on init
-    # Support legacy paths
-    symlink /sdcard /mnt/sdcard
     symlink /sdcard /storage/sdcard0
 
     # KSM
