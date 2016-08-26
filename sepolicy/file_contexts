@@ -29,14 +29,13 @@
 /system/vendor/firmware/ducati-m3.bin       u:object_r:firmware_ducati:s0
 
 # Block devices
-/dev/block/mmcblk0                                      u:object_r:root_block_device:s0
-/dev/block/platform/omap/omap_hsmmc.1/by-name/EFS       u:object_r:efs_block_device:s0
-/dev/block/platform/omap/omap_hsmmc.1/by-name/MODEM     u:object_r:radio_device:s0
-/dev/block/platform/omap/omap_hsmmc.1/by-name/KERNEL    u:object_r:boot_block_device:s0
-/dev/block/platform/omap/omap_hsmmc.1/by-name/RECOVERY  u:object_r:recovery_block_device:s0
-/dev/block/platform/omap/omap_hsmmc.1/by-name/FACTORYFS u:object_r:system_block_device:s0
-/dev/block/platform/omap/omap_hsmmc.1/by-name/CACHE     u:object_r:cache_block_device:s0
-/dev/block/platform/omap/omap_hsmmc.1/by-name/DATAFS    u:object_r:userdata_block_device:s0
+/dev/block/platform/omap_hsmmc.1/by-name/EFS       u:object_r:efs_block_device:s0
+/dev/block/platform/omap_hsmmc.1/by-name/MODEM     u:object_r:efs_block_device:s0
+/dev/block/platform/omap_hsmmc.1/by-name/KERNEL    u:object_r:boot_block_device:s0
+/dev/block/platform/omap_hsmmc.1/by-name/RECOVERY  u:object_r:recovery_block_device:s0
+/dev/block/platform/omap_hsmmc.1/by-name/FACTORYFS u:object_r:system_block_device:s0
+/dev/block/platform/omap_hsmmc.1/by-name/CACHE     u:object_r:cache_block_device:s0
+/dev/block/platform/omap_hsmmc.1/by-name/DATAFS    u:object_r:userdata_block_device:s0
 
 # Swap
 /dev/block/zram(.*)                                     u:object_r:swap_block_device:s0
