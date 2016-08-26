@@ -1,0 +1,2 @@
+# Allow reading device variant
+allow audioserver sysfs:file r_file_perms;

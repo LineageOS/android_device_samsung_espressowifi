@@ -1,0 +1,2 @@
+# Allow remote processor communication
+allow mediacodec rpmsg_device:chr_file rw_file_perms;

@@ -14,4 +14,5 @@ allow geomagneticd sensors_data_file:file create_file_perms;
 
 # read/write calibration offsets
 # TODO: create own label
-allow geomagneticd sysfs:file write;
+allow geomagneticd sysfs:dir r_dir_perms;
+allow geomagneticd sysfs:file rw_file_perms;
