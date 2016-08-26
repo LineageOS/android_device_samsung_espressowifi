@@ -2,6 +2,10 @@ import init.omap4.rc
 import init.espresso.sensors.rc
 import init.espresso.usb.rc
 
+on early-init
+    mount debugfs debugfs /sys/kernel/debug
+    restorecon_recursive /sys/kernel/debug
+
 on init
     symlink /sdcard /storage/sdcard0
 
@@ -68,9 +72,6 @@ on post-fs-data
     mkdir /efs/wifi 0775 system radio
 
     setprop vold.post_fs_data_done 1
-
-on boot
-    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
 # SMC Service
 service tf_daemon /system/bin/tf_daemon \
