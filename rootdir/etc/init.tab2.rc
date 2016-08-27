@@ -1,4 +1,5 @@
-import init.${ro.hardware}.usb.rc
+import init.espresso.sensors.rc
+import init.espresso.usb.rc
 
 on init
     mkdir /mnt/shell/emulated 0700 shell shell
@@ -55,6 +56,7 @@ on fs
     mount debugfs debugfs /sys/kernel/debug
 
 on post-fs-data
+<<<<<<< HEAD
     # we will remap this as /storage/sdcard0 with the sdcard fuse tool
     mkdir /data/media 0770 media_rw media_rw
     chown media_rw media_rw /data/media
@@ -64,6 +66,8 @@ on post-fs-data
     # sensors
     mkdir /data/sensors 0770 system system
 
+=======
+>>>>>>> 73404ac... init: factor out sensors init to a separate file
     # dmrpc
     mkdir /data/smc 0770 drmrpc drmrpc
     chown drmrpc drmrpc /data/smc/counter.bin
@@ -81,109 +85,6 @@ on post-fs-data
     chmod 0660 /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
-
-    # Change permissions for sensors
-
-    chown system input /sys/class/input/input2/enable
-    chown system input /sys/class/input/input2/poll_delay
-
-    chown system input /sys/class/input/input3/enable
-    chown system input /sys/class/input/input3/poll_delay
-
-    chown system input /sys/class/input/input2/enable
-    chown system input /sys/class/input/input2/delay
-    chown system input /sys/class/input/input2/wake
-
-    chown system input /sys/class/input/input3/enable
-    chown system input /sys/class/input/input3/delay
-    chown system input /sys/class/input/input3/filter_enable
-    chown system input /sys/class/input/input3/filter_len
-    chown system input /sys/class/input/input3/data
-    chown system input /sys/class/input/input3/status
-    chown system input /sys/class/input/input3/wake
-    chown system input /sys/class/input/input3/position
-
-    chown compass input /sys/class/input/input3/offsets
-    chown compass input /sys/class/input/input3/dynamic_matrix
-    chown system input /sys/class/input/input3/threshold
-    chown system input /sys/class/input/input3/distortion
-    chown system input /sys/class/input/input3/shape
-    write /sys/class/input/input3/distortion "500 350 15"
-
-    chown system input /sys/class/input/input4/enable
-    chown system input /sys/class/input/input4/delay
-    chown system input /sys/class/input/input4/filter_enable
-    chown system input /sys/class/input/input4/filter_len
-    chown system input /sys/class/input/input4/data
-    chown system input /sys/class/input/input4/status
-    chown system input /sys/class/input/input4/wake
-    chown system input /sys/class/input/input4/position
-
-    chown compass input /sys/class/input/input4/offsets
-    chown compass input /sys/class/input/input4/dynamic_matrix
-    chown system input /sys/class/input/input4/threshold
-    chown system input /sys/class/input/input4/distortion
-    chown system input /sys/class/input/input4/shape
-    write /sys/class/input/input4/distortion "500 350 15"
-
-    chown system input /sys/class/input/input5/enable
-    chown system input /sys/class/input/input5/delay
-    chown system input /sys/class/input/input5/filter_enable
-    chown system input /sys/class/input/input5/filter_len
-    chown system input /sys/class/input/input5/data
-    chown system input /sys/class/input/input5/status
-    chown system input /sys/class/input/input5/wake
-    chown system input /sys/class/input/input5/position
-
-    chown compass input /sys/class/input/input5/offsets
-    chown compass input /sys/class/input/input5/dynamic_matrix
-    chown system input /sys/class/input/input5/threshold
-    chown system input /sys/class/input/input5/distortion
-    chown system input /sys/class/input/input5/shape
-    write /sys/class/input/input5/distortion "500 350 15"
-
-    chown system input /sys/class/input/input6/enable
-    chown system input /sys/class/input/input6/delay
-    chown system input /sys/class/input/input6/filter_enable
-    chown system input /sys/class/input/input6/filter_len
-    chown system input /sys/class/input/input6/data
-    chown system input /sys/class/input/input6/status
-    chown system input /sys/class/input/input6/wake
-    chown system input /sys/class/input/input6/position
-
-    chown compass input /sys/class/input/input6/offsets
-    chown compass input /sys/class/input/input6/dynamic_matrix
-    chown system input /sys/class/input/input6/threshold
-    chown system input /sys/class/input/input6/distortion
-    chown system input /sys/class/input/input6/shape
-    write /sys/class/input/input6/distortion "500 350 15"
-
-    chown system input /sys/class/input/input7/enable
-    chown system input /sys/class/input/input7/delay
-    chown system input /sys/class/input/input7/filter_enable
-    chown system input /sys/class/input/input7/filter_len
-    chown system input /sys/class/input/input7/data
-    chown system input /sys/class/input/input7/status
-    chown system input /sys/class/input/input7/wake
-    chown system input /sys/class/input/input7/position
-
-    chown system radio /sys/class/sensors/accelerometer_sensor/raw_data
-    chown system radio /sys/class/sensors/accelerometer_sensor/calibration
-    chown system radio /sys/class/sensors/accelerometer_sensor/vendor
-    chown system radio /sys/class/sensors/accelerometer_sensor/name
-
-    chown system radio /sys/class/sensors/magnetic_sensor/vendor
-    chown system radio /sys/class/sensors/magnetic_sensor/name
-
-    chown system radio /sys/class/sensors/proximity_sensor/state
-    chown system radio /sys/class/sensors/proximity_sensor/raw_data
-    chown system radio /sys/class/sensors/proximity_sensor/vendor
-    chown system radio /sys/class/sensors/proximity_sensor/name
-
-    chown system radio /sys/class/sensors/light_sensor/lux
-    chown system radio /sys/class/sensors/light_sensor/raw_data
-    chown system radio /sys/class/sensors/light_sensor/vendor
-    chown system radio /sys/class/sensors/light_sensor/name
 
     # Change permission for switch
     chmod 0600 /sys/class/sec/switch/jig_on
@@ -236,6 +137,7 @@ service smc_pa /system/bin/smc_pa_ctrl \
     group root
     oneshot
 
+<<<<<<< HEAD
 service orientationd /system/bin/orientationd
     class main
     user compass
@@ -262,6 +164,8 @@ service fuse_usbdisk0 /system/bin/sdcard -u 1023 -g 1023 -d /mnt/media_rw/usbdis
     class late_start
     disabled
 
+=======
+>>>>>>> 73404ac... init: factor out sensors init to a separate file
 service p2p_supplicant /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf \
     -I/system/etc/wifi/wpa_supplicant_overlay.conf -N \

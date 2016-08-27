@@ -30,6 +30,7 @@ PRODUCT_AAPT_PREF_CONFIG := mdpi
 # Ramdisk
 PRODUCT_PACKAGES += \
     fstab.espresso \
+    init.espresso.sensors.rc \
     init.espresso.usb.rc \
     init.espresso.rc \
     ueventd.espresso.rc
