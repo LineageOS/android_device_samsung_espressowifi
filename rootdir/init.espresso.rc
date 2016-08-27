@@ -47,8 +47,6 @@ on post-fs-data
     # Bluetooth
     setprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"
     chown bluetooth net_bt_stack ro.bt.bdaddr_path
-    chown bluetooth net_bt_stack /dev/ttyO1
-    chmod 0660 /dev/ttyO1
     chmod 0660 /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
@@ -57,9 +55,7 @@ on post-fs-data
     chmod 0600 /sys/class/sec/switch/jig_on
     chown radio radio /sys/class/sec/switch/jig_on
 
-    # create data/gps for GPS demon
-    chown root system /dev/ttyO0
-    chmod 0660 /dev/ttyO0
+    # GPS
     chown root system /sys/class/sec/gps/GPS_PWR_EN/value
     chmod 0664 /sys/class/sec/gps/GPS_PWR_EN/value
     chown root system /sys/class/sec/gps/GPS_nRST/value
