@@ -1,4 +1,5 @@
-import init.${ro.hardware}.usb.rc
+import init.espresso.sensors.rc
+import init.espresso.usb.rc
 
 on init
     mkdir /mnt/shell/emulated 0700 shell shell
@@ -64,9 +65,6 @@ on post-fs-data
     mkdir /data/misc/wifi 0770 wifi system
     mkdir /data/misc/wifi/sockets 0770 wifi wifi
 
-    # sensors
-    mkdir /data/sensors 0770 system system
-
     # dmrpc
     mkdir /data/smc 0770 drmrpc drmrpc
     chown drmrpc drmrpc /data/smc/counter.bin
@@ -87,110 +85,6 @@ on post-fs-data
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
     restorecon /sys/class/rfkill/rfkill0/state
     restorecon /sys/class/rfkill/rfkill0/type
-
-    # Change permission for sensor rev00
-    chmod 755 /system/bin/geomagneticd
-
-    chown system input /sys/class/input/input2/enable
-    chown system input /sys/class/input/input2/poll_delay
-
-    chown system input /sys/class/input/input3/enable
-    chown system input /sys/class/input/input3/poll_delay
-
-    chown system input /sys/class/input/input2/enable
-    chown system input /sys/class/input/input2/delay
-    chown system input /sys/class/input/input2/wake
-
-    chown system input /sys/class/input/input3/enable
-    chown system input /sys/class/input/input3/delay
-    chown system input /sys/class/input/input3/filter_enable
-    chown system input /sys/class/input/input3/filter_len
-    chown system input /sys/class/input/input3/data
-    chown system input /sys/class/input/input3/status
-    chown system input /sys/class/input/input3/wake
-    chown system input /sys/class/input/input3/position
-
-    chown compass input /sys/class/input/input3/offsets
-    chown compass input /sys/class/input/input3/dynamic_matrix
-    chown system input /sys/class/input/input3/threshold
-    chown system input /sys/class/input/input3/distortion
-    chown system input /sys/class/input/input3/shape
-    write /sys/class/input/input3/distortion "500 350 15"
-
-    chown system input /sys/class/input/input4/enable
-    chown system input /sys/class/input/input4/delay
-    chown system input /sys/class/input/input4/filter_enable
-    chown system input /sys/class/input/input4/filter_len
-    chown system input /sys/class/input/input4/data
-    chown system input /sys/class/input/input4/status
-    chown system input /sys/class/input/input4/wake
-    chown system input /sys/class/input/input4/position
-
-    chown compass input /sys/class/input/input4/offsets
-    chown compass input /sys/class/input/input4/dynamic_matrix
-    chown system input /sys/class/input/input4/threshold
-    chown system input /sys/class/input/input4/distortion
-    chown system input /sys/class/input/input4/shape
-    write /sys/class/input/input4/distortion "500 350 15"
-
-    chown system input /sys/class/input/input5/enable
-    chown system input /sys/class/input/input5/delay
-    chown system input /sys/class/input/input5/filter_enable
-    chown system input /sys/class/input/input5/filter_len
-    chown system input /sys/class/input/input5/data
-    chown system input /sys/class/input/input5/status
-    chown system input /sys/class/input/input5/wake
-    chown system input /sys/class/input/input5/position
-
-    chown compass input /sys/class/input/input5/offsets
-    chown compass input /sys/class/input/input5/dynamic_matrix
-    chown system input /sys/class/input/input5/threshold
-    chown system input /sys/class/input/input5/distortion
-    chown system input /sys/class/input/input5/shape
-    write /sys/class/input/input5/distortion "500 350 15"
-
-    chown system input /sys/class/input/input6/enable
-    chown system input /sys/class/input/input6/delay
-    chown system input /sys/class/input/input6/filter_enable
-    chown system input /sys/class/input/input6/filter_len
-    chown system input /sys/class/input/input6/data
-    chown system input /sys/class/input/input6/status
-    chown system input /sys/class/input/input6/wake
-    chown system input /sys/class/input/input6/position
-
-    chown compass input /sys/class/input/input6/offsets
-    chown compass input /sys/class/input/input6/dynamic_matrix
-    chown system input /sys/class/input/input6/threshold
-    chown system input /sys/class/input/input6/distortion
-    chown system input /sys/class/input/input6/shape
-    write /sys/class/input/input6/distortion "500 350 15"
-
-    chown system input /sys/class/input/input7/enable
-    chown system input /sys/class/input/input7/delay
-    chown system input /sys/class/input/input7/filter_enable
-    chown system input /sys/class/input/input7/filter_len
-    chown system input /sys/class/input/input7/data
-    chown system input /sys/class/input/input7/status
-    chown system input /sys/class/input/input7/wake
-    chown system input /sys/class/input/input7/position
-
-    chown system radio /sys/class/sensors/accelerometer_sensor/raw_data
-    chown system radio /sys/class/sensors/accelerometer_sensor/calibration
-    chown system radio /sys/class/sensors/accelerometer_sensor/vendor
-    chown system radio /sys/class/sensors/accelerometer_sensor/name
-
-    chown system radio /sys/class/sensors/magnetic_sensor/vendor
-    chown system radio /sys/class/sensors/magnetic_sensor/name
-
-    chown system radio /sys/class/sensors/proximity_sensor/state
-    chown system radio /sys/class/sensors/proximity_sensor/raw_data
-    chown system radio /sys/class/sensors/proximity_sensor/vendor
-    chown system radio /sys/class/sensors/proximity_sensor/name
-
-    chown system radio /sys/class/sensors/light_sensor/lux
-    chown system radio /sys/class/sensors/light_sensor/raw_data
-    chown system radio /sys/class/sensors/light_sensor/vendor
-    chown system radio /sys/class/sensors/light_sensor/name
 
     # Change permission for switch
     chmod 0600 /sys/class/sec/switch/jig_on
@@ -245,16 +139,6 @@ service smc_pa /system/bin/smc_pa_ctrl \
     user root
     group root
     oneshot
-
-service orientationd /system/bin/orientationd
-    class main
-    user compass
-    group input
-
-service geomagneticd /system/bin/geomagneticd
-    class main
-    user compass
-    group system input
 
 # create virtual SD card at /storage/sdcard0, based on the /data/media directory
 # daemon will drop to user/group system/media_rw after initializing
