@@ -54,3 +54,9 @@
 
 # For SGX
 /dev/pvrsrvkm             0666   system     system
+
+# Bluetooth
+/dev/ttyO1                0660   bluetooth  net_bt_stack
+
+# GPS
+/dev/ttyO0                0660   system     system
