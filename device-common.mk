@@ -92,7 +92,6 @@ PRODUCT_PACKAGES += \
     e2fsck \
     lights.omap4 \
     libinvensense_mpl \
-    power.piranha \
     sensors.piranha \
     geomagneticd \
     orientationd
