@@ -20,4 +20,8 @@
 
 #define BTM_DEF_LOCAL_NAME   "Samsung Galaxy Tab 2"
 
+#define BLE_INCLUDED TRUE
+#define BTA_GATT_INCLUDED TRUE
+#define SMP_INCLUDED TRUE
+
 #endif
