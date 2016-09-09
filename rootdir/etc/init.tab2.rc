@@ -226,7 +226,6 @@ service pvrsrvinit /system/bin/pvrsrvinit
     class core
     user root
     group root
-    seclabel u:r:pvrsrvinit:s0
     oneshot
     disabled
 
