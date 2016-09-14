@@ -16,7 +16,6 @@
  */
 
 #define LOG_TAG "lights"
-#define LOG_NDEBUG 0
 
 #include <cutils/log.h>
 #include <stdint.h>
@@ -84,7 +83,7 @@ set_light_backlight(struct light_device_t *dev,
 	int brightness = rgb_to_brightness(state);
 
 	pthread_mutex_lock(&g_lock);
-    ALOGD("set_light_backlight brightness=%d\n", brightness);
+	ALOGV("set_light_backlight brightness=%d\n", brightness);
 	err = write_int(LCD_FILE, brightness);
 	pthread_mutex_unlock(&g_lock);
 
@@ -93,7 +92,6 @@ set_light_backlight(struct light_device_t *dev,
 
 static int close_lights(struct light_device_t *dev)
 {
-	ALOGV("close_light is called");
 	if (dev)
 		free(dev);
 
