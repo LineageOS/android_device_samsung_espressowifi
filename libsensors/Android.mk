@@ -31,6 +31,8 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)
 
+LOCAL_CFLAGS := -Wall -Werror
+
 LOCAL_SHARED_LIBRARIES := libutils libcutils liblog libhardware
 LOCAL_PRELINK_MODULE := false
 
@@ -47,6 +49,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	geomagneticd.c \
 	input.c
+
+LOCAL_CFLAGS := -Wall -Werror
 
 LOCAL_SHARED_LIBRARIES := libutils libcutils liblog
 LOCAL_PRELINK_MODULE := false
@@ -65,6 +69,8 @@ LOCAL_SRC_FILES := \
 	input.c \
 	bma250.c \
 	yas530.c
+
+LOCAL_CFLAGS := -Wall -Werror
 
 LOCAL_SHARED_LIBRARIES := libutils libcutils liblog
 LOCAL_PRELINK_MODULE := false
