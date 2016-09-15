@@ -21,6 +21,7 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := lights.c
 
+LOCAL_CFLAGS := -Wall -Werror
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 
