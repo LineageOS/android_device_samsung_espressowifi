@@ -443,7 +443,7 @@ complete:
 	return rc;
 }
 
-int main(int argc, char *argv[])
+int main(int argc __unused, char *argv[] __unused)
 {
 	struct geomagneticd_data *geomagneticd_data = NULL;
 	char path[PATH_MAX] = { 0 };

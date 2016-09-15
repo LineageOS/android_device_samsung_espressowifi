@@ -147,7 +147,7 @@ int piranha_sensors_poll(struct sensors_poll_device_t *dev,
 {
 	struct piranha_sensors_device *device;
 	int i, j;
-	int c, n;
+	int n;
 	int poll_rc, rc;
 
 //	ALOGD("%s(%p, %p, %d)", __func__, dev, data, count);
