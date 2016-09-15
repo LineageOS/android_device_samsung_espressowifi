@@ -61,12 +61,6 @@ write_int(char const *path, int value)
     }
 }
 
-static int
-is_lit(struct light_state_t const* state)
-{
-    return state->color & 0x00ffffff;
-}
-
 static int 
 rgb_to_brightness(struct light_state_t const *state)
 {
@@ -77,7 +71,7 @@ rgb_to_brightness(struct light_state_t const *state)
 }
 
 static int 
-set_light_backlight(struct light_device_t *dev,
+set_light_backlight(struct light_device_t *dev __unused,
 			struct light_state_t const *state)
 {
 	int err = 0;
