@@ -152,8 +152,6 @@ int orientation_get_data(struct orientationd_data *data)
 {
 	struct input_event input_event;
 	int input_fd;
-	int activated;
-	unsigned int delay;
 	int rc;
 
 	if (data == NULL)
@@ -234,7 +232,7 @@ complete:
 	return rc;
 }
 
-int main(int argc, char *argv[])
+int main(int argc __unused, char *argv[] __unused)
 {
 	struct orientationd_data *orientationd_data = NULL;
 	pthread_attr_t thread_attr;
