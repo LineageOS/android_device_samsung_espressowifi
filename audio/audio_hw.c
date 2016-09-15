@@ -462,10 +462,6 @@ static void end_call(struct espresso_audio_device *adev)
     adev->pcm_bt_ul = NULL;
 }
 
-static void set_eq_filter(struct espresso_audio_device *adev)
-{
-}
-
 void audio_set_wb_amr_callback(void *data, int enable)
 {
     struct espresso_audio_device *adev = (struct espresso_audio_device *)data;
@@ -525,15 +521,6 @@ static void set_incall_device(struct espresso_audio_device *adev)
     /* if output device isn't supported, open modem side to handset by default */
     ALOGE("%s: ril_set_call_audio_path(%d)", __func__, device_type);
     ril_set_call_audio_path(&adev->ril, device_type);
-}
-
-static void set_input_volumes(struct espresso_audio_device *adev, int main_mic_on,
-                              int headset_mic_on, int sub_mic_on)
-{
-}
-
-static void set_output_volumes(struct espresso_audio_device *adev, bool tty_volume)
-{
 }
 
 static void force_all_standby(struct espresso_audio_device *adev)
@@ -606,8 +593,6 @@ static void select_output_device(struct espresso_audio_device *adev)
     int speaker_on;
     int earpiece_on;
     int bt_on;
-    bool tty_volume = false;
-    unsigned int channel;
 
     headset_on = adev->out_device & AUDIO_DEVICE_OUT_WIRED_HEADSET;
     headphone_on = adev->out_device & AUDIO_DEVICE_OUT_WIRED_HEADPHONE;
@@ -652,8 +637,6 @@ static void select_output_device(struct espresso_audio_device *adev)
     }
 
     select_devices(adev);
-
-	set_eq_filter(adev);
 
     if (adev->mode == AUDIO_MODE_IN_CALL) {
         if (!bt_on) {
@@ -746,63 +729,6 @@ static void select_input_device(struct espresso_audio_device *adev)
 }
 
 /* must be called with hw device and output stream mutexes locked */
-static int start_output_stream_low_latency(struct espresso_stream_out *out)
-{
-    struct espresso_audio_device *adev = out->dev;
-    unsigned int flags = PCM_OUT;
-    int i;
-    bool success = true;
-
-    if (adev->mode != AUDIO_MODE_IN_CALL) {
-        select_output_device(adev);
-    }
-
-    /* default to low power: will be corrected in out_write if necessary before first write to
-     * tinyalsa.
-     */
-
-    if (adev->out_device & ~(AUDIO_DEVICE_OUT_DGTL_DOCK_HEADSET | AUDIO_DEVICE_OUT_AUX_DIGITAL)) {
-        /* Something not a dock in use */
-        out->config[PCM_NORMAL] = pcm_config_tones;
-        out->config[PCM_NORMAL].rate = MM_FULL_POWER_SAMPLING_RATE;
-        out->pcm[PCM_NORMAL] = pcm_open(CARD_DEFAULT, PORT_PLAYBACK,
-                                            flags, &out->config[PCM_NORMAL]);
-    }
-
-    if (adev->out_device & AUDIO_DEVICE_OUT_DGTL_DOCK_HEADSET) {
-        /* SPDIF output in use */
-        out->config[PCM_SPDIF] = pcm_config_tones;
-        out->config[PCM_SPDIF].rate = MM_FULL_POWER_SAMPLING_RATE;
-        out->pcm[PCM_SPDIF] = pcm_open(CARD_DEFAULT, PORT_PLAYBACK,
-                                           flags, &out->config[PCM_SPDIF]);
-    }
-
-    /* Close any PCMs that could not be opened properly and return an error */
-    for (i = 0; i < PCM_TOTAL; i++) {
-        if (out->pcm[i] && !pcm_is_ready(out->pcm[i])) {
-            ALOGE("%s: cannot open pcm_out driver %d: %s", __func__ , i, pcm_get_error(out->pcm[i]));
-            pcm_close(out->pcm[i]);
-            out->pcm[i] = NULL;
-            success = false;
-        }
-    }
-
-    if (success) {
-        out->buffer_frames = pcm_config_tones.period_size * 2;
-        if (out->buffer == NULL)
-            out->buffer = malloc(out->buffer_frames * audio_stream_out_frame_size(&out->stream));
-
-        if (adev->echo_reference != NULL)
-            out->echo_reference = adev->echo_reference;
-        out->resampler->reset(out->resampler);
-
-        return 0;
-    }
-
-    return -ENOMEM;
-}
-
-/* must be called with hw device and output stream mutexes locked */
 static int start_output_stream_deep_buffer(struct espresso_stream_out *out)
 {
     struct espresso_audio_device *adev = out->dev;
@@ -859,7 +785,6 @@ static int check_input_parameters(uint32_t sample_rate, audio_format_t format, i
 static size_t get_input_buffer_size(uint32_t sample_rate, audio_format_t format, int channel_count)
 {
     size_t size;
-    size_t device_rate;
 
     if (check_input_parameters(sample_rate, format, channel_count) != 0)
         return 0;
@@ -937,39 +862,6 @@ static struct echo_reference_itfe *get_echo_reference(struct espresso_audio_devi
     return adev->echo_reference;
 }
 
-static int get_playback_delay(struct espresso_stream_out *out,
-                       size_t frames,
-                       struct echo_reference_buffer *buffer)
-{
-    size_t kernel_frames;
-    int status;
-    int primary_pcm = 0;
-
-    /* Find the first active PCM to act as primary */
-    while ((primary_pcm < PCM_TOTAL) && !out->pcm[primary_pcm])
-        primary_pcm++;
-
-    status = pcm_get_htimestamp(out->pcm[primary_pcm], &kernel_frames, &buffer->time_stamp);
-    if (status < 0) {
-        buffer->time_stamp.tv_sec  = 0;
-        buffer->time_stamp.tv_nsec = 0;
-        buffer->delay_ns           = 0;
-        ALOGV("%s: pcm_get_htimestamp error,"
-                "setting playbackTimestamp to 0", __func__);
-        return status;
-    }
-
-    kernel_frames = pcm_get_buffer_size(out->pcm[primary_pcm]) - kernel_frames;
-
-    /* adjust render time stamp with delay added by current driver buffer.
-     * Add the duration of current frame as we want the render time of the last
-     * sample being written. */
-    buffer->delay_ns = (long)(((int64_t)(kernel_frames + frames)* 1000000000)/
-                            MM_FULL_POWER_SAMPLING_RATE);
-
-    return 0;
-}
-
 static uint32_t out_get_sample_rate(const struct audio_stream *stream __unused)
 {
     return DEFAULT_OUT_SAMPLING_RATE;
@@ -980,23 +872,8 @@ static int out_set_sample_rate(struct audio_stream *stream __unused, uint32_t ra
     return 0;
 }
 
-static size_t out_get_buffer_size_low_latency(const struct audio_stream *stream)
-{
-    struct espresso_stream_out *out = (struct espresso_stream_out *)stream;
-
-    /* take resampling into account and return the closest majoring
-    multiple of 16 frames, as audioflinger expects audio buffers to
-    be a multiple of 16 frames. Note: we use the default rate here
-    from pcm_config_tones.rate. */
-    size_t size = (SHORT_PERIOD_SIZE * DEFAULT_OUT_SAMPLING_RATE) / pcm_config_tones.rate;
-    size = ((size + 15) / 16) * 16;
-    return size * audio_stream_out_frame_size((const struct audio_stream_out *)stream);
-}
-
 static size_t out_get_buffer_size_deep_buffer(const struct audio_stream *stream)
 {
-    struct espresso_stream_out *out = (struct espresso_stream_out *)stream;
-
     /* take resampling into account and return the closest majoring
     multiple of 16 frames, as audioflinger expects audio buffers to
     be a multiple of 16 frames. Note: we use the default rate here
@@ -1093,7 +970,6 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     struct espresso_audio_device *adev = out->dev;
     struct espresso_stream_in *in;
     struct str_parms *parms;
-    char *str;
     char value[32];
     int ret, val = 0;
     bool force_input_standby = false;
@@ -1199,18 +1075,8 @@ static char * out_get_parameters(const struct audio_stream *stream, const char *
     return str;
 }
 
-static uint32_t out_get_latency_low_latency(const struct audio_stream_out *stream)
+static uint32_t out_get_latency_deep_buffer(const struct audio_stream_out *stream __unused)
 {
-    struct espresso_stream_out *out = (struct espresso_stream_out *)stream;
-
-    /*  Note: we use the default rate here from pcm_config_mm.rate */
-    return (SHORT_PERIOD_SIZE * PLAYBACK_SHORT_PERIOD_COUNT * 1000) / pcm_config_tones.rate;
-}
-
-static uint32_t out_get_latency_deep_buffer(const struct audio_stream_out *stream)
-{
-    struct espresso_stream_out *out = (struct espresso_stream_out *)stream;
-
     /*  Note: we use the default rate here from pcm_config_mm.rate */
     return (DEEP_BUFFER_LONG_PERIOD_SIZE * PLAYBACK_DEEP_BUFFER_LONG_PERIOD_COUNT * 1000) /
                     pcm_config_mm.rate;
@@ -1220,98 +1086,6 @@ static int out_set_volume(struct audio_stream_out *stream __unused, float left _
                           float right __unused)
 {
     return -ENOSYS;
-}
-
-static ssize_t out_write_low_latency(struct audio_stream_out *stream, const void* buffer,
-                         size_t bytes)
-{
-    int ret;
-    struct espresso_stream_out *out = (struct espresso_stream_out *)stream;
-    struct espresso_audio_device *adev = out->dev;
-    size_t frame_size = audio_stream_out_frame_size(stream);
-    size_t in_frames = bytes / frame_size;
-    size_t out_frames = in_frames;
-    bool force_input_standby = false;
-    struct espresso_stream_in *in;
-    int i;
-
-    /* acquiring hw device mutex systematically is useful if a low priority thread is waiting
-     * on the output stream mutex - e.g. executing select_mode() while holding the hw device
-     * mutex
-     */
-    pthread_mutex_lock(&adev->lock);
-    pthread_mutex_lock(&out->lock);
-    if (out->standby) {
-        ret = start_output_stream_low_latency(out);
-        if (ret != 0) {
-            pthread_mutex_unlock(&adev->lock);
-            goto exit;
-        }
-        out->standby = 0;
-        /* a change in output device may change the microphone selection */
-        if (adev->active_input &&
-                adev->active_input->source == AUDIO_SOURCE_VOICE_COMMUNICATION)
-            force_input_standby = true;
-    }
-    pthread_mutex_unlock(&adev->lock);
-
-    for (i = 0; i < PCM_TOTAL; i++) {
-        /* only use resampler if required */
-        if (out->pcm[i] && (out->config[i].rate != DEFAULT_OUT_SAMPLING_RATE)) {
-            out_frames = out->buffer_frames;
-            out->resampler->resample_from_input(out->resampler,
-                                                (int16_t *)buffer,
-                                                &in_frames,
-                                                (int16_t *)out->buffer,
-                                                &out_frames);
-            break;
-        }
-    }
-
-    if (out->echo_reference != NULL) {
-        struct echo_reference_buffer b;
-        b.raw = (void *)buffer;
-        b.frame_count = in_frames;
-
-        get_playback_delay(out, out_frames, &b);
-        out->echo_reference->write(out->echo_reference, &b);
-    }
-
-    /* Write to all active PCMs */
-    for (i = 0; i < PCM_TOTAL; i++) {
-        if (out->pcm[i]) {
-            if (out->config[i].rate == DEFAULT_OUT_SAMPLING_RATE) {
-                /* PCM uses native sample rate */
-                ret = PCM_WRITE(out->pcm[i], (void *)buffer, bytes);
-            } else {
-                /* PCM needs resampler */
-                ret = PCM_WRITE(out->pcm[i], (void *)out->buffer, out_frames * frame_size);
-            }
-            if (ret)
-                break;
-        }
-    }
-
-exit:
-    pthread_mutex_unlock(&out->lock);
-
-    if (ret != 0) {
-        usleep(bytes * 1000000 / audio_stream_out_frame_size(stream) /
-               out_get_sample_rate(&stream->common));
-    }
-
-    if (force_input_standby) {
-        pthread_mutex_lock(&adev->lock);
-        if (adev->active_input) {
-            in = adev->active_input;
-            pthread_mutex_lock(&in->lock);
-            do_input_standby(in);
-            pthread_mutex_unlock(&in->lock);
-        }
-        pthread_mutex_unlock(&adev->lock);
-    }
-
-    return bytes;
 }
 
 static ssize_t out_write_deep_buffer(struct audio_stream_out *stream, const void* buffer,
@@ -1506,10 +1280,8 @@ static size_t in_get_buffer_size(const struct audio_stream *stream)
                                  popcount(in->main_channels));
 }
 
-static audio_channel_mask_t in_get_channels(const struct audio_stream *stream)
+static audio_channel_mask_t in_get_channels(const struct audio_stream *stream __unused)
 {
-    struct espresso_stream_in *in = (struct espresso_stream_in *)stream;
-
     return AUDIO_CHANNEL_IN_STEREO;
 }
 
@@ -1573,7 +1345,6 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
     struct espresso_stream_in *in = (struct espresso_stream_in *)stream;
     struct espresso_audio_device *adev = in->dev;
     struct str_parms *parms;
-    char *str;
     char value[32];
     int ret, val = 0;
     bool do_standby = false;
@@ -1854,8 +1625,8 @@ static ssize_t read_frames(struct espresso_stream_in *in, void *buffer, ssize_t 
 
         } else {
             struct resampler_buffer buf = {
-                    { raw : NULL, },
-                    frame_count : frames_rd,
+                    .raw = NULL,
+                    .frame_count = frames_rd,
             };
             get_next_buffer(&in->buf_provider, &buf);
             if (buf.raw != NULL) {
@@ -2550,7 +2321,6 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
 {
     struct espresso_audio_device *adev = (struct espresso_audio_device *)dev;
     struct str_parms *parms;
-    char *str;
     char value[32];
     int ret;
 
@@ -2680,7 +2450,6 @@ static int adev_get_mic_mute(const struct audio_hw_device *dev, bool *state)
 static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev __unused,
                                          const struct audio_config *config)
 {
-    size_t size;
     int channel_count = popcount(config->channel_mask);
     if (check_input_parameters(config->sample_rate, config->format, channel_count) != 0)
         return 0;
@@ -2852,7 +2621,7 @@ static void adev_config_start(void *data, const XML_Char *elem,
     struct espresso_dev_cfg *dev_cfg;
     const XML_Char *name = NULL;
     const XML_Char *val = NULL;
-    unsigned int i, j;
+    unsigned int i;
 
     for (i = 0; attr[i]; i += 2) {
     if (strcmp(attr[i], "name") == 0)
@@ -3132,7 +2901,7 @@ static int adev_open(const hw_module_t* module, const char* name,
 
 err_mixer:
     mixer_close(adev->mixer);
-err:
+
     return -EINVAL;
 }
 
