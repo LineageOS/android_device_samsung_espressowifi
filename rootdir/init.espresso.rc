@@ -38,6 +38,7 @@ on post-fs-data
 
     # radio
     mkdir /data/misc/radio/hatp 0771 radio system
+    mkdir /data/log 0660 radio radio
 
     # Bluetooth
     setprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"
