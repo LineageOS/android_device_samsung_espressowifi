@@ -46,16 +46,12 @@ struct sensor_t piranha_sensors[] = {
 		SENSOR_TYPE_MAGNETIC_FIELD, 800.0f, 0.3f, 4.0f, 10000, 0, 0, {}, },
 	{ "YAS Orientation Sensor", "Yamaha", 1, SENSOR_TYPE_ORIENTATION,
 		SENSOR_TYPE_ORIENTATION, 360.0f, 0.1f, 0.0f, 10000, 0, 0, {}, },
-/* P51xx only */
-	{ "BH1721 Light Sensor", "ROHM", 1, SENSOR_TYPE_LIGHT,
-		SENSOR_TYPE_LIGHT, 0.0f, 0.0f, 0.0f, 0, 0, 0, {}, },
-/* ---------- */
-/* P31xx only */
-	{ "GP2A Light Sensor", "Sharp", 1, SENSOR_TYPE_LIGHT,
+/* To be changed during the initialization process */
+	{ "Light Sensor", "Dummy", 1, SENSOR_TYPE_LIGHT,
 		SENSOR_TYPE_LIGHT, 10240.0f, 1.0f, 0.75f, 0, 0, 0, {}, },
 /* ---------- */
 /* P3100 only */
-	{ "GP2A Proximity Sensor", "Sharp", 1, SENSOR_TYPE_PROXIMITY,
+	{ "GP2AP002 Proximity Sensor", "Sharp", 1, SENSOR_TYPE_PROXIMITY,
 		SENSOR_TYPE_PROXIMITY, 5.0f, 5.0f, 0.75f, 0, 0, 0, {}, },
 /* ---------- */
 };
@@ -66,12 +62,7 @@ struct piranha_sensors_handlers *piranha_sensors_handlers[] = {
 	&bma250,
 	&yas530,
 	&yas_orientation,
-/* P51xx only */
-	&bh1721,
-/* ---------- */
-/* P31xx only */
-	&gp2a_light,
-/* ---------- */
+	&light,
 /* P3100 only */
 	&gp2a_proximity,
 /* ---------- */
@@ -245,24 +236,25 @@ void piranha_sensors_setup() {
 		ALOGE("Failed to read " DEVICE_VARIANT_SYSFS ", assuming P51xx\n");
 		strcpy(device, "espresso10");
 	}
-	if (f) fclose(f);
+	if (f)
+		fclose(f);
 
 	ALOGD("Device: %s", device);
 
 	if (strcmp(device, "espresso10") == 0) {
 		/* Device is P51xx */
+		piranha_sensors[3].name = "BH1721 Light Sensor";
+		piranha_sensors[3].vendor = "ROHM",
 		piranha_sensors_count = 4;
 	} else if (strcmp(device, "espressowifi") == 0) {
 		/* Device is P3110 */
-		piranha_sensors[3] = piranha_sensors[4];
-		piranha_sensors_handlers[3] = piranha_sensors_handlers[4];
+		piranha_sensors[3].name = "AL3201 Light Sensor";
+		piranha_sensors[3].vendor = "Lite-On",
 		piranha_sensors_count = 4;
 	} else {
 		/* Device is P3100 */
-		piranha_sensors[3] = piranha_sensors[4];
-		piranha_sensors_handlers[3] = piranha_sensors_handlers[4];
-		piranha_sensors[4] = piranha_sensors[5];
-		piranha_sensors_handlers[4] = piranha_sensors_handlers[5];
+		piranha_sensors[3].name = "GP2AP002 Light Sensor";
+		piranha_sensors[3].vendor = "Sharp",
 		piranha_sensors_count = 5;
 	}
 

@@ -101,8 +101,7 @@ int orientation_fill(struct piranha_sensors_handlers *handlers,
 extern struct piranha_sensors_handlers bma250;
 extern struct piranha_sensors_handlers yas530;
 extern struct piranha_sensors_handlers yas_orientation;
-extern struct piranha_sensors_handlers bh1721;
-extern struct piranha_sensors_handlers gp2a_light;
+extern struct piranha_sensors_handlers light;
 extern struct piranha_sensors_handlers gp2a_proximity;
 
 #endif
