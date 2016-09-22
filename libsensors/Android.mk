@@ -21,9 +21,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	piranha_sensors.c \
 	input.c \
-	bh1721.c \
 	bma250.c \
-	gp2a_light.c \
+	light.c \
 	gp2a_proximity.c \
 	yas530.c \
 	yas_orientation.c
