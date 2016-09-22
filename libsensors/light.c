@@ -34,15 +34,22 @@
 
 #include "piranha_sensors.h"
 
-struct gp2a_light_data {
-	char path_enable[PATH_MAX];
-	char path_delay[PATH_MAX];
+enum {
+	SENSOR_TYPE_BH1721 = 1,
+	SENSOR_TYPE_AL3201,
+	SENSOR_TYPE_GP2A,
 };
 
-int gp2a_light_init(struct piranha_sensors_handlers *handlers,
+struct light_data {
+	char path_enable[PATH_MAX];
+	char path_delay[PATH_MAX];
+	int sensor_type;
+};
+
+int light_init(struct piranha_sensors_handlers *handlers,
 	struct piranha_sensors_device *device)
 {
-	struct gp2a_light_data *data = NULL;
+	struct light_data *data = NULL;
 	char path[PATH_MAX] = { 0 };
 	int input_fd = -1;
 	int rc;
@@ -52,7 +59,7 @@ int gp2a_light_init(struct piranha_sensors_handlers *handlers,
 	if (handlers == NULL)
 		return -EINVAL;
 
-	data = (struct gp2a_light_data *) calloc(1, sizeof(struct gp2a_light_data));
+	data = (struct light_data *) calloc(1, sizeof(struct light_data));
 
 	input_fd = input_open("light_sensor");
 	if (input_fd < 0) {
@@ -72,6 +79,28 @@ int gp2a_light_init(struct piranha_sensors_handlers *handlers,
 	handlers->poll_fd = input_fd;
 	handlers->data = (void *) data;
 
+	char device_variant[16];
+	FILE *f = fopen(DEVICE_VARIANT_SYSFS, "r");
+	if (!f || fgets(device_variant, 16, f) == NULL) {
+		ALOGE("Failed to read " DEVICE_VARIANT_SYSFS ", assuming P51xx\n");
+		strcpy(device_variant, "espresso10");
+	}
+	if (f)
+		fclose(f);
+
+	ALOGD("Device: %s", device_variant);
+
+	if (strcmp(device_variant, "espresso10") == 0) {
+		/* Device is P51xx */
+		data->sensor_type = SENSOR_TYPE_BH1721;
+	} else if (strcmp(device_variant, "espressowifi") == 0) {
+		/* Device is P3110 */
+		data->sensor_type = SENSOR_TYPE_AL3201;
+	} else {
+		/* Device is P3100 */
+		data->sensor_type = SENSOR_TYPE_GP2A;
+	}
+
 	return 0;
 
 error:
@@ -87,7 +116,7 @@ error:
 	return -1;
 }
 
-int gp2a_light_deinit(struct piranha_sensors_handlers *handlers)
+int light_deinit(struct piranha_sensors_handlers *handlers)
 {
 	ALOGD("%s(%p)", __func__, handlers);
 
@@ -105,9 +134,9 @@ int gp2a_light_deinit(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int gp2a_light_activate(struct piranha_sensors_handlers *handlers)
+int light_activate(struct piranha_sensors_handlers *handlers)
 {
-	struct gp2a_light_data *data;
+	struct light_data *data;
 	int rc;
 
 	ALOGD("%s(%p)", __func__, handlers);
@@ -115,7 +144,7 @@ int gp2a_light_activate(struct piranha_sensors_handlers *handlers)
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
-	data = (struct gp2a_light_data *) handlers->data;
+	data = (struct light_data *) handlers->data;
 
 	rc = sysfs_value_write(data->path_enable, 1);
 	if (rc < 0) {
@@ -128,9 +157,9 @@ int gp2a_light_activate(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int gp2a_light_deactivate(struct piranha_sensors_handlers *handlers)
+int light_deactivate(struct piranha_sensors_handlers *handlers)
 {
-	struct gp2a_light_data *data;
+	struct light_data *data;
 	int rc;
 
 	ALOGD("%s(%p)", __func__, handlers);
@@ -138,7 +167,7 @@ int gp2a_light_deactivate(struct piranha_sensors_handlers *handlers)
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
-	data = (struct gp2a_light_data *) handlers->data;
+	data = (struct light_data *) handlers->data;
 
 	rc = sysfs_value_write(data->path_enable, 0);
 	if (rc < 0) {
@@ -151,9 +180,9 @@ int gp2a_light_deactivate(struct piranha_sensors_handlers *handlers)
 	return 0;
 }
 
-int gp2a_light_set_delay(struct piranha_sensors_handlers *handlers, int64_t delay)
+int light_set_delay(struct piranha_sensors_handlers *handlers, int64_t delay)
 {
-	struct gp2a_light_data *data;
+	struct light_data *data;
 	int rc;
 
 	ALOGD("%s(%p, %" PRId64 ")", __func__, handlers, delay);
@@ -161,7 +190,7 @@ int gp2a_light_set_delay(struct piranha_sensors_handlers *handlers, int64_t dela
 	if (handlers == NULL || handlers->data == NULL)
 		return -EINVAL;
 
-	data = (struct gp2a_light_data *) handlers->data;
+	data = (struct light_data *) handlers->data;
 
 	rc = sysfs_value_write(data->path_delay, delay);
 	if (rc < 0) {
@@ -172,9 +201,9 @@ int gp2a_light_set_delay(struct piranha_sensors_handlers *handlers, int64_t dela
 	return 0;
 }
 
-float gp2a_light_convert(int value)
+float light_convert(int value, int sensor_type)
 {
-	// Converting the raw value to lux units is done with:
+	// Converting the AL3201 raw value to lux:
 	// I = 10 * log(light) uA
 	// U = raw * 3300 / 4095 (max ADC value is 3.3V for 4095 LSB)
 	// R = 47kOhm
@@ -183,12 +212,30 @@ float gp2a_light_convert(int value)
 	// Only 1/4 of light reaches the sensor:
 	// => light = 4 * (10 ^ (raw * 330 / 4095 / 47))
 
-	return powf(10, value * (330.0f / 4095.0f / 47.0f)) * 4;
+	// Converting the GP2A raw value to lux:
+	// I = 10 * log(Ev) uA
+	// R = 24kOhm
+	// Max adc value 1023 = 1.25V
+	// 1/4 of light reaches sensor
+
+	switch (sensor_type) {
+		case SENSOR_TYPE_AL3201:
+			return powf(10, value * (330.0f / 4095.0f / 47.0f)) * 4;
+		case SENSOR_TYPE_BH1721:
+			return value * 0.712f;
+		case SENSOR_TYPE_GP2A:
+			return powf(10, value * (125.0f / 1023.0f / 24.0f)) * 4;
+		default:
+			ALOGE("%s: Unknown sensor type", __func__);
+	}
+
+	return 0;
 }
 
-int gp2a_light_get_data(struct piranha_sensors_handlers *handlers,
+int light_get_data(struct piranha_sensors_handlers *handlers,
 	struct sensors_event_t *event)
 {
+	struct light_data *data = (struct light_data *) handlers->data;
 	struct input_event input_event;
 	int input_fd;
 	int rc;
@@ -214,7 +261,7 @@ int gp2a_light_get_data(struct piranha_sensors_handlers *handlers,
 
 		if (input_event.type == EV_REL) {
 			if (input_event.code == REL_MISC)
-				event->light = gp2a_light_convert(input_event.value);
+				event->light = light_convert(input_event.value, data->sensor_type);
 		} else if (input_event.type == EV_SYN) {
 			if (input_event.code == SYN_REPORT)
 				event->timestamp = input_timestamp(&input_event);
@@ -224,15 +271,15 @@ int gp2a_light_get_data(struct piranha_sensors_handlers *handlers,
 	return 0;
 }
 
-struct piranha_sensors_handlers gp2a_light = {
-	.name = "GP2A Light",
+struct piranha_sensors_handlers light = {
+	.name = "Light",
 	.handle = SENSOR_TYPE_LIGHT,
-	.init = gp2a_light_init,
-	.deinit = gp2a_light_deinit,
-	.activate = gp2a_light_activate,
-	.deactivate = gp2a_light_deactivate,
-	.set_delay = gp2a_light_set_delay,
-	.get_data = gp2a_light_get_data,
+	.init = light_init,
+	.deinit = light_deinit,
+	.activate = light_activate,
+	.deactivate = light_deactivate,
+	.set_delay = light_set_delay,
+	.get_data = light_get_data,
 	.activated = 0,
 	.needed = 0,
 	.poll_fd = -1,
