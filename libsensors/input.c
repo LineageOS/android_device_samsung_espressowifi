@@ -24,28 +24,13 @@
 #include <dirent.h>
 #include <linux/ioctl.h>
 #include <linux/input.h>
-#include <linux/uinput.h>
 
 #define LOG_TAG "piranha_sensors"
 #include <utils/Log.h>
 
 #include "piranha_sensors.h"
 
-void input_event_set(struct input_event *event, int type, int code, int value)
-{
-	if (event == NULL)
-		return;
-
-	memset(event, 0, sizeof(struct input_event));
-
-	event->type = type,
-	event->code = code;
-	event->value = value;
-
-	gettimeofday(&event->time, NULL);
-}
-
-int64_t timestamp(struct timeval *time)
+static int64_t timestamp(struct timeval *time)
 {
 	if (time == NULL)
 		return -1;
@@ -59,72 +44,6 @@ int64_t input_timestamp(struct input_event *event)
 		return -1;
 
 	return timestamp(&event->time);
-}
-
-int uinput_rel_create(const char *name)
-{
-	struct uinput_user_dev uinput_dev;
-	int uinput_fd;
-	int rc;
-
-	if (name == NULL)
-		return -1;
-
-	uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
-	if (uinput_fd < 0) {
-		ALOGE("%s: Unable to open uinput device", __func__);
-		goto error;
-	}
-
-	memset(&uinput_dev, 0, sizeof(uinput_dev));
-
-	strncpy(uinput_dev.name, name, sizeof(uinput_dev.name));
-	uinput_dev.id.bustype	= BUS_I2C;
-	uinput_dev.id.vendor	= 0;
-	uinput_dev.id.product	= 0;
-	uinput_dev.id.version	= 0;
-
-	rc = 0;
-	rc |= ioctl(uinput_fd, UI_SET_EVBIT, EV_REL);
-	rc |= ioctl(uinput_fd, UI_SET_RELBIT, REL_X);
-	rc |= ioctl(uinput_fd, UI_SET_RELBIT, REL_Y);
-	rc |= ioctl(uinput_fd, UI_SET_RELBIT, REL_Z);
-	rc |= ioctl(uinput_fd, UI_SET_EVBIT, EV_SYN);
-
-	if (rc < 0) {
-		ALOGE("%s: Unable to set uinput bits", __func__);
-		goto error;
-	}
-
-	rc = write(uinput_fd, &uinput_dev, sizeof(uinput_dev));
-	if (rc < 0) {
-		ALOGE("%s: Unable to write uinput device", __func__);
-		goto error;
-	}
-
-	rc = ioctl(uinput_fd, UI_DEV_CREATE);
-	if (rc < 0) {
-		ALOGE("%s: Unable to create uinput device", __func__);
-		goto error;
-	}
-
-	usleep(3000);
-
-	return uinput_fd;
-
-error:
-	if (uinput_fd >= 0)
-		close(uinput_fd);
-
-	return -1;
-}
-
-void uinput_destroy(int uinput_fd)
-{
-	if (uinput_fd < 0)
-		return;
-
-	ioctl(uinput_fd, UI_DEV_DESTROY);
 }
 
 int input_open(char *name)
@@ -214,37 +133,6 @@ int sysfs_path_prefix(char *name, char *path_prefix)
 	return -1;
 }
 
-int64_t sysfs_value_read(char *path)
-{
-	char buffer[100];
-	int64_t value;
-	int fd = -1;
-	int rc;
-
-	if (path == NULL)
-		return -1;
-
-	fd = open(path, O_RDONLY);
-	if (fd < 0)
-		goto error;
-
-	rc = read(fd, &buffer, sizeof(buffer));
-	if (rc <= 0)
-		goto error;
-
-	value = (int64_t)strtoimax(buffer, NULL, 10);
-	goto complete;
-
-error:
-	value = -1;
-
-complete:
-	if (fd >= 0)
-		close(fd);
-
-	return value;
-}
-
 int sysfs_value_write(char *path, int64_t value)
 {
 	char buffer[100];
@@ -262,64 +150,6 @@ int sysfs_value_write(char *path, int64_t value)
 
 	rc = write(fd, buffer, strlen(buffer));
 	if (rc < (int) strlen(buffer))
-		goto error;
-
-	rc = 0;
-	goto complete;
-
-error:
-	rc = -1;
-
-complete:
-	if (fd >= 0)
-		close(fd);
-
-	return rc;
-}
-
-int sysfs_string_read(char *path, char *buffer, size_t length)
-{
-	int fd = -1;
-	int rc;
-
-	if (path == NULL || buffer == NULL || length == 0)
-		return -1;
-
-	fd = open(path, O_RDONLY);
-	if (fd < 0)
-		goto error;
-
-	rc = read(fd, buffer, length);
-	if (rc <= 0)
-		goto error;
-
-	rc = 0;
-	goto complete;
-
-error:
-	rc = -1;
-
-complete:
-	if (fd >= 0)
-		close(fd);
-
-	return rc;
-}
-
-int sysfs_string_write(char *path, char *buffer, size_t length)
-{
-	int fd = -1;
-	int rc;
-
-	if (path == NULL || buffer == NULL || length == 0)
-		return -1;
-
-	fd = open(path, O_WRONLY);
-	if (fd < 0)
-		goto error;
-
-	rc = write(fd, buffer, length);
-	if (rc <= 0)
 		goto error;
 
 	rc = 0;
