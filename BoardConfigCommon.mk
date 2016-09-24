@@ -94,6 +94,5 @@ BOARD_SEPOLICY_UNION += \
 
 # Recovery
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
-BOARD_SUPPRESS_EMMC_WIPE := true
 TARGET_RECOVERY_FSTAB := device/samsung/espressowifi/rootdir/etc/fstab.tab2
 RECOVERY_FSTAB_VERSION := 2
