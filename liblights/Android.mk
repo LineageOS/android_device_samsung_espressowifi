@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2016 The Android Open Source Project
 # Copyright (C) 2012 The CyanogenMod Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,20 +15,16 @@
 # limitations under the License.
 
 LOCAL_PATH:= $(call my-dir)
+
 # HAL module implemenation stored in
-# hw/<COPYPIX_HARDWARE_MODULE_ID>.<ro.board.platform>.so
+# hw/<LIGHTS_HARDWARE_MODULE_ID>.<ro.board.platform>.so
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := lights.c
-
 LOCAL_CFLAGS := -Wall -Werror
-
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
-
 LOCAL_SHARED_LIBRARIES := liblog
-
-LOCAL_MODULE := lights.piranha
-
+LOCAL_MODULE := lights.omap4
 LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)
