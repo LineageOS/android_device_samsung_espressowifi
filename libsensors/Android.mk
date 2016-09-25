@@ -1,4 +1,5 @@
 # Copyright (C) 2013 Paul Kocialkowski <contact@paulk.fr>
+# Copyright (C) 2016 Dániel Járai <jaraidaniel@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,34 +15,38 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 LOCAL_PATH := $(call my-dir)
-PIRANHA_SENSORS_PATH := $(LOCAL_PATH)
 
+LIBSENSORS_PATH := $(LOCAL_PATH)
+
+# HAL module implemenation stored in
+# hw/<SENSORS_HARDWARE_MODULE_ID>.<ro.product.board>.so
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
-	piranha_sensors.c \
-	input.c \
-	bma250.c \
-	light.c \
-	gp2a_proximity.c \
-	yas530.c \
-	yas_orientation.c
+	sensors.cpp \
+	InputEventReader.cpp \
+	SensorBase.cpp \
+	AccelerationSensor.cpp \
+	LightSensor.cpp \
+	MagneticSensor.cpp \
+	OrientationSensor.cpp \
+	ProximitySensor.cpp
 
 LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)
+	$(LIBSENSORS_PATH)
 
 LOCAL_CFLAGS := -Wall -Werror
 
 LOCAL_SHARED_LIBRARIES := libutils libcutils liblog libhardware
 LOCAL_PRELINK_MODULE := false
 
-LOCAL_MODULE := sensors.piranha
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_MODULE := sensors.omap4
+LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)
 
-LOCAL_PATH := $(PIRANHA_SENSORS_PATH)/geomagneticd
+LOCAL_PATH := $(LIBSENSORS_PATH)/geomagneticd
 
 include $(CLEAR_VARS)
 
@@ -59,7 +64,7 @@ LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_EXECUTABLE)
 
-LOCAL_PATH := $(PIRANHA_SENSORS_PATH)/orientationd
+LOCAL_PATH := $(LIBSENSORS_PATH)/orientationd
 
 include $(CLEAR_VARS)
 

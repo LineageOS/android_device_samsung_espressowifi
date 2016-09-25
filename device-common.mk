@@ -90,8 +90,7 @@ PRODUCT_PACKAGES += \
     camera.omap4 \
     e2fsck \
     lights.omap4 \
-    libinvensense_mpl \
-    sensors.piranha \
+    sensors.omap4 \
     geomagneticd \
     orientationd
 
