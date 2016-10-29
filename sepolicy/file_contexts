@@ -28,9 +28,6 @@
 # Firmwares
 /system/vendor/firmware/ducati-m3.bin       u:object_r:firmware_ducati:s0
 
-# variant setup
-/system/bin/init\.espresso\.variant\.sh     u:object_r:variant_setup_exec:s0
-
 # Block devices
 /dev/block/mmcblk0                                      u:object_r:root_block_device:s0
 /dev/block/platform/omap/omap_hsmmc.1/by-name/EFS       u:object_r:efs_block_device:s0
