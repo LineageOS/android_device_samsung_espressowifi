@@ -17,3 +17,9 @@ BOARD_HAS_DOWNLOAD_MODE := true
 # SELinux
 BOARD_SEPOLICY_DIRS += \
     device/samsung/espressowifi/sepolicy-custom
+
+BOARD_SEPOLICY_UNION += \
+    file_contexts \
+    property.te \
+    property_contexts \
+    variant_setup.te
