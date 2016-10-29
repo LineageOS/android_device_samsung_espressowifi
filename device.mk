@@ -17,11 +17,13 @@
 # Include common device configuration
 $(call inherit-product, device/samsung/espressowifi/device-common.mk)
 
+LOCAL_PATH := device/samsung/espressowifi
+
 # Include wifi-only overlays
 DEVICE_PACKAGE_OVERLAYS += \
     $(LOCAL_PATH)/overlay/aosp
 
-# Audio
+# Audio configs
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/audio/audio_policy.conf:system/etc/audio_policy.conf \
     $(LOCAL_PATH)/audio/tiny_hw_espressowifi.xml:system/etc/sound/espressowifi \
