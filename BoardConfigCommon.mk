@@ -96,6 +96,8 @@ BOARD_SEPOLICY_UNION += \
     init.te \
     mediaserver.te \
     orientationd.te \
+    property.te \
+    property_contexts \
     pvrsrvinit.te \
     smc_pa.te \
     system_server.te \
