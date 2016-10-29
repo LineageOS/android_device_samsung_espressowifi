@@ -13,3 +13,7 @@ BOARD_CHARGER_SHOW_PERCENTAGE := true
 # Recovery
 TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espressowifi
 BOARD_HAS_DOWNLOAD_MODE := true
+
+# SELinux
+BOARD_SEPOLICY_DIRS += \
+    device/samsung/espressowifi/sepolicy-custom

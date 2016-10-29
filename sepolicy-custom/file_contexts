@@ -1,0 +1,2 @@
+# variant setup
+/system/bin/init\.espresso\.variant\.sh     u:object_r:variant_setup_exec:s0
