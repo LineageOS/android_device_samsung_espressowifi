@@ -86,11 +86,8 @@ BOARD_SEPOLICY_UNION += \
     device.te \
     domain.te \
     healthd.te \
-    property_contexts \
-    property.te \
     pvrsrvinit.te \
     rild.te \
-    variant_setup.te \
     wpa_supplicant.te
 
 # Recovery
