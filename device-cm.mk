@@ -14,8 +14,11 @@
 # limitations under the License.
 #
 
-# Include common espresso BoardConfig
-include device/samsung/espressowifi/BoardConfigCommon.mk
+LOCAL_PATH := device/samsung/espressowifi
 
-# assert
-TARGET_OTA_ASSERT_DEVICE := espresso-common,p3110,GT-P3110,p3113,GT-P3113,espressowifi,espressowifixx,p5110,GT-P5110,p5113,GT-P5113,espresso10wifi,espresso10wifixx
+# Recovery Ramdisk
+PRODUCT_PACKAGES += \
+    $(LOCAL_PATH)/recovery/root/init.recovery.espresso.rc:recovery/root/init.recovery.espresso.rc
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/init.espresso.variant.sh:system/bin/init.espresso.variant.sh

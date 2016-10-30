@@ -56,4 +56,8 @@
     <string name="config_perf_profile_prop">sys.perf.profile</string>
     <string name="config_perf_profile_default_entry">1</string>
 
+    <!-- If this is true, the screen will fade off.
+         espresso: needed on p31xx if hwrotation=270 -->
+    <bool name="config_animateScreenLights">false</bool>
+
 </resources>
