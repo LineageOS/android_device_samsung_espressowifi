@@ -17,15 +17,11 @@
 # Use 44.1 kHz UI sounds
 $(call inherit-product-if-exists, frameworks/base/data/sounds/AudioPackage13.mk)
 
-# This is a wifi-only device
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.carrier=wifi-only
-
-# Inherit from the common Open Source product configuration
-$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
-
 # Inherit device configuration
 $(call inherit-product, device/samsung/espressowifi/device.mk)
+
+# Inherit from those products. Most specific first.
+$(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
 
 PRODUCT_NAME := aosp_espressowifi
 PRODUCT_DEVICE := espressowifi
