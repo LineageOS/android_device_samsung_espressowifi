@@ -58,6 +58,6 @@
 
     <!-- If this is true, the screen will fade off.
          espresso: needed on p31xx if hwrotation=270 -->
-    <bool name="config_animateScreenLights">false</bool>
+    <bool name="config_animateScreenLights">true</bool>
 
 </resources>
