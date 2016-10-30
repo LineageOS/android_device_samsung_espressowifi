@@ -54,7 +54,7 @@ BOARD_FLASH_BLOCK_SIZE := 4096
 # Egl
 BOARD_EGL_CFG := device/samsung/espressowifi/configs/egl.cfg
 
-# Wifi
+# Wi-Fi
 BOARD_WLAN_DEVICE                := bcmdhd
 WPA_SUPPLICANT_VERSION           := VER_0_8_X
 BOARD_WPA_SUPPLICANT_DRIVER      := NL80211
@@ -91,6 +91,6 @@ BOARD_SEPOLICY_UNION += \
     wpa_supplicant.te
 
 # Recovery
-TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
-TARGET_RECOVERY_FSTAB := device/samsung/espressowifi/rootdir/fstab.espresso
 RECOVERY_FSTAB_VERSION := 2
+TARGET_RECOVERY_FSTAB := device/samsung/espressowifi/rootdir/fstab.espresso
+TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"

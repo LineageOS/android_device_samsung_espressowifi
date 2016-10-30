@@ -36,4 +36,8 @@
          config to 7. -->
     <integer name="config_deviceHardwareKeys">0</integer>
 
+    <!-- If this is true, the screen will fade off.
+         espresso: needed on p31xx if hwrotation=270 -->
+    <bool name="config_animateScreenLights">false</bool>
+
 </resources>

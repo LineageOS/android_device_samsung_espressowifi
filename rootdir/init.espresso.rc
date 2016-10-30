@@ -75,7 +75,7 @@ on post-fs-data
     mkdir /data/misc/radio/hatp 0771 radio system
     chown radio radio /data/misc/radio
 
-    # Bluetooth.
+    # Bluetooth
     setprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"
     chown bluetooth net_bt_stack ro.bt.bdaddr_path
     chmod 0660 /sys/class/rfkill/rfkill0/state

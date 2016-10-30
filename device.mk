@@ -19,6 +19,10 @@ $(call inherit-product, device/samsung/espressowifi/device-common.mk)
 
 LOCAL_PATH := device/samsung/espressowifi
 
+# This is a wifi-only device
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.carrier=wifi-only
+
 # Include wifi-only overlays
 DEVICE_PACKAGE_OVERLAYS += \
     $(LOCAL_PATH)/overlay/aosp
