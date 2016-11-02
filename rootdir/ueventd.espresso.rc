@@ -1,7 +1,7 @@
 #for DSSCOMP
 /dev/dsscomp              0660   system     system
 /dev/tiler                0660   system     system
-/dev/ion                  0770   media      graphics
+/dev/ion                  0777   media      graphics
 
 #for SYSLINK
 /dev/rpmsg-omx0           0660   drmrpc     drmrpc
