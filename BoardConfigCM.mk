@@ -10,6 +10,10 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/class/android_usb/f_mass_storage/lun%d/
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 
+# Screencast
+TARGET_USE_AVC_BASELINE_PROFILE := true
+BOARD_NO_INTRA_MACROBLOCK_MODE_SUPPORT := true
+
 # Recovery
 TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espressowifi
 BOARD_HAS_DOWNLOAD_MODE := true
