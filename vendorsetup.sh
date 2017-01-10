@@ -1,1 +1,1 @@
-add_lunch_combo cm_espressowifi-userdebug
+add_lunch_combo lineage_espressowifi-userdebug

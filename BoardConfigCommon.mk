@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# Inherit CM specific board config
+# Inherit LineageOS specific board config
 -include device/samsung/espressowifi/BoardConfigCM.mk
 
 # Inherit common omap4 board config
