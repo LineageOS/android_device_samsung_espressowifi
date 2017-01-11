@@ -20,9 +20,6 @@ on fs
 
     restorecon_recursive /efs
 
-    # pvr module
-    insmod /system/lib/modules/pvrsrvkm_sgx540_120.ko
-
     # read only 1 page at a time
     write /proc/sys/vm/page-cluster 0
 
