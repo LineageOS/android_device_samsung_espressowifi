@@ -15,7 +15,9 @@
 # vold-managed volumes
 /devices/platform/omap_hsmmc.0/mmc_host/mmc1*      auto                auto      defaults                                              wait,voldmanaged=sdcard1:auto,encryptable=userdata
 /devices/platform/musb-omap2430/musb-hdrc/usb1*    auto                auto      defaults                                              voldmanaged=usbdisk0:auto,noemulatedsd
-
+# k3.0
+/devices/platform/omap/omap_hsmmc.0/mmc_host/mmc1*      auto                auto      defaults                                              wait,voldmanaged=sdcard1:auto,encryptable=userdata
+/devices/platform/omap/musb-omap2430/musb-hdrc/usb1*    auto                auto      defaults                                              voldmanaged=usbdisk0:auto,noemulatedsd
 
 # zRAM
 /dev/block/zram0                                        none                swap      defaults                                              zramsize=268435456,zramstreams=2

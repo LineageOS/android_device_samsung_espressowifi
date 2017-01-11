@@ -9,6 +9,9 @@ on early-init
 on init
     symlink /sdcard /storage/sdcard0
 
+    # Make k3.0 compatible with k3.4+ fstab
+    symlink /dev/block/platform/omap/omap_hsmmc.1 /dev/block/platform/omap_hsmmc.1
+
     # KSM
     write /sys/kernel/mm/ksm/pages_to_scan 100
     write /sys/kernel/mm/ksm/sleep_millisecs 500
