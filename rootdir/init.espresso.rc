@@ -47,9 +47,6 @@ on fs
     restorecon /efs/imei/mps_code.dat
     restorecon /efs/wifi/.mac.info
 
-    # pvr module
-    insmod /system/lib/modules/pvrsrvkm_sgx540_120.ko
-
     setprop ro.crypto.fuse_sdcard true
 
 on post-fs-data
