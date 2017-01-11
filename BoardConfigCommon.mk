@@ -20,6 +20,9 @@
 # Inherit common omap4 board config
 -include hardware/ti/omap4/BoardConfigCommon.mk
 
+# Build SGX KM
+-include hardware/ti/omap4/pvr-km.mk
+
 TARGET_NO_BOOTLOADER := true
 
 TARGET_BOOTLOADER_BOARD_NAME := piranha
@@ -32,16 +35,6 @@ BOARD_NAND_SPARE_SIZE := 128
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_BASE := 0x40000000
 BOARD_KERNEL_CMDLINE := androidboot.hardware=espresso
-
-# External SGX Module
-SGX_MODULES:
-	make clean -C $(HARDWARE_TI_OMAP4_BASE)/pvr-source/eurasiacon/build/linux2/omap4430_android
-	cp $(TARGET_KERNEL_SOURCE)/drivers/video/omap2/omapfb/omapfb.h $(KERNEL_OUT)/drivers/video/omap2/omapfb/omapfb.h
-	make -j8 -C $(HARDWARE_TI_OMAP4_BASE)/pvr-source/eurasiacon/build/linux2/omap4430_android ARCH=arm KERNEL_CROSS_COMPILE=arm-eabi- CROSS_COMPILE=arm-eabi- KERNELDIR=$(KERNEL_OUT) TARGET_PRODUCT="blaze_tablet" BUILD=release TARGET_SGX=540 PLATFORM_VERSION=4.0
-	mv $(KERNEL_OUT)/../../target/kbuild/pvrsrvkm_sgx540_120.ko $(KERNEL_MODULES_OUT)
-	$(ARM_EABI_TOOLCHAIN)/arm-eabi-strip --strip-unneeded $(KERNEL_MODULES_OUT)/pvrsrvkm_sgx540_120.ko
-
-TARGET_KERNEL_MODULES += SGX_MODULES
 
 # Filesystem
 TARGET_USERIMAGES_USE_EXT4 := true
