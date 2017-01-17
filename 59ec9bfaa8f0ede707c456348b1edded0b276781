@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba3e81b7_9ad34a38",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 13026
+      },
+      "writtenOn": "2017-01-17T14:31:36Z",
+      "side": 1,
+      "message": "You\u0027re using the commonized libpower/removing device\u0027s, right? The current title makes it sound like the opposite.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 28
+      },
+      "revId": "59ec9bfaa8f0ede707c456348b1edded0b276781",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
