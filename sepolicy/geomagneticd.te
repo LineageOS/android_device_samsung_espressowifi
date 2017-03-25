@@ -1,5 +1,5 @@
 # geomagneticd
-type geomagneticd, domain;
+type geomagneticd, domain, domain_deprecated;
 type geomagneticd_exec, exec_type, file_type;
 
 init_daemon_domain(geomagneticd)

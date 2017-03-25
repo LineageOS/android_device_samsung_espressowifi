@@ -1,4 +1,4 @@
-type cpboot-daemon, domain;
+type cpboot-daemon, domain, domain_deprecated;
 type cpboot-daemon_exec, exec_type, file_type;
 
 init_daemon_domain(cpboot-daemon);

@@ -10,3 +10,5 @@ allow init tmpfs:lnk_file create;
 
 # Allow restorecon
 allow init debugfs_trace_marker:file getattr;
+
+allow init block_device:lnk_file { create_file_perms relabelfrom };
