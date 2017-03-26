@@ -149,11 +149,10 @@ service iprenew_bt-pan /system/bin/dhcpcd -n
     disabled
     oneshot
 
-service cpboot-daemon /sbin/cbd -d -p 8
+service cpboot-daemon /system/bin/cbd -d -p 8
     class main
     user root
     group radio cache inet misc audio sdcard_rw log sdcard_r
-    seclabel u:r:cpboot-daemon:s0
 
 # GPS
 service gpsd /system/bin/gpsd -c /system/etc/gps.xml
