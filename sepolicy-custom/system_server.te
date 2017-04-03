@@ -1,0 +1,1 @@
+allow system_server rotation_prop:file r_file_perms;
