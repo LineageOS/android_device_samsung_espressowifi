@@ -1,0 +1,1 @@
+allow platform_app rotation_prop:file r_file_perms;
