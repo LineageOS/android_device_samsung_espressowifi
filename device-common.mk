@@ -136,12 +136,7 @@ PRODUCT_CHARACTERISTICS := tablet
 
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.opengles.version=131072 \
-    ro.bq.gpu_to_cpu_unsupported=1 \
     ro.sf.lcd_density=160
-
-# SGX540 is slower with the scissor optimization enabled
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.hwui.disable_scissor_opt=true
 
 PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.dex2oat-flags=--no-watch-dog
