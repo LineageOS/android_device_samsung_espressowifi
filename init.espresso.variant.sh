@@ -4,7 +4,7 @@
 
 export PATH=/system/bin
 
-DEVICE=/sys/board_properties/type
+DEVICE=/sys/board/type
 BB=/system/xbin/busybox
 
 if [ -f "$DEVICE" ]
