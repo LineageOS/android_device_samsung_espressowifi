@@ -40,3 +40,6 @@
 
 # Swap
 /dev/block/zram(.*)                                     u:object_r:swap_block_device:s0
+
+# sysfs
+/sys/board/type                             u:object_r:sysfs_board_type:s0

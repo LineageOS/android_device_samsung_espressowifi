@@ -1,3 +1,4 @@
 # Filesystem types
 type sensors_data_file, file_type, data_file_type;
 type firmware_ducati, file_type; 
+type sysfs_board_type, fs_type, sysfs_type;

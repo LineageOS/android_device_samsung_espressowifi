@@ -4,3 +4,4 @@ allow system_server gps_data_file:dir search;
 allow system_server gps_data_file:fifo_file { write read open setattr };
 
 allow system_server efs_file:dir search;
+allow system_server sysfs_board_type:file r_file_perms;
