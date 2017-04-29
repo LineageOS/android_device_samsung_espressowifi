@@ -1,5 +1,6 @@
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE := true
+BOARD_NO_CHARGER_LED := true
 
 # F2FS filesystem
 TARGET_USERIMAGES_USE_F2FS := true
