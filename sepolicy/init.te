@@ -9,3 +9,6 @@ allow init tmpfs:lnk_file create;
 
 # For mounting debugfs
 allow init debugfs:dir mounton;
+
+# For 'cpuset' module requests
+allow init kernel:system module_request;
