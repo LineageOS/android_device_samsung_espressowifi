@@ -18,7 +18,7 @@
 # Inherit common omap4 board config
 -include hardware/ti/omap4/BoardConfigCommon.mk
 
-# Inherit CM specific board config
+# Inherit LineageOS specific board config
 -include device/samsung/espressowifi/BoardConfigCM.mk
 
 TARGET_NO_BOOTLOADER := true
