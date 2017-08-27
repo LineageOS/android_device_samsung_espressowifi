@@ -137,11 +137,15 @@ service dock_kbd_attach /system/bin/dock_kbd_attach /dev/ttyO3
     user root
     oneshot
 
-# Set 7 inch devices as portrait device
+# Set 7 inch devices as portrait device if ro.sf.hwrotation=270
 service variant_setup /system/bin/init.espresso.variant.sh
     class main
     user root
     oneshot
+    disabled
+
+on property:ro.sf.hwrotation=270
+    start variant_setup
 
 # LPM
 on property:ro.bootmode=charger
