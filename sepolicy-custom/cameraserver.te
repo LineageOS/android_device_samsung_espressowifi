@@ -1,5 +1,6 @@
 allow cameraserver device:dir r_dir_perms;
 allow cameraserver gpu_device:chr_file rw_file_perms;
+allow cameraserver rotation_prop:file { open read };
 allow cameraserver rpmsg_device:chr_file rw_file_perms;
 allow cameraserver sensorservice_service:service_manager find;
 allow cameraserver sysfs:file r_file_perms;
