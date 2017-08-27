@@ -6,14 +6,12 @@ export PATH=/system/bin
 
 DEVICE=/sys/board/type
 
+# adjust sensor and touchscreen orientation if ro.sf.hwrotation 270
 if [ -f "$DEVICE" ]
 then
   variant=`cat $DEVICE`
   case "$variant" in
       "espresso" | "espressowifi")
-            # set p31xx to portrait mode
-            setprop ro.sf.hwrotation 270
-
             # set mms136 touchcreen driver orientation
             echo 1 > /sys/devices/virtual/sec/tsp/pivot
 
