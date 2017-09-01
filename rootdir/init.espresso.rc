@@ -73,6 +73,9 @@ on post-fs-data
 
     setprop vold.post_fs_data_done 1
 
+    # for p31xx adjustments
+    chown root root 0750 /system/bin/init.espresso.variant.sh
+
 # SMC Service
 service tf_daemon /system/bin/tf_daemon \
     -d -c /system/bin/smc.ini
@@ -141,6 +144,7 @@ service dock_kbd_attach /system/bin/dock_kbd_attach /dev/ttyO3
 service variant_setup /system/bin/init.espresso.variant.sh
     class main
     user root
+    group root
     oneshot
 
 # LPM
