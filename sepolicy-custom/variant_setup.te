@@ -17,5 +17,3 @@ allow variant_setup rotation_prop:property_service set;
 
 # Set accelerometer and geomagnetic position via sysfs
 allow variant_setup sysfs:file write;
-
-allow variant_setup self:capability dac_override;
