@@ -22,7 +22,7 @@
 # are responsible for having their own logic, for fine-grained control.
 
 LOCAL_PATH := $(call my-dir)
-
-ifneq ($(filter espressowifi espresso3g,$(TARGET_DEVICE)),)
+#removed espresso3g due to having a seperate repo
+ifneq ($(filter espressowifi,$(TARGET_DEVICE)),)
 include $(call all-makefiles-under,$(LOCAL_PATH))
 endif
