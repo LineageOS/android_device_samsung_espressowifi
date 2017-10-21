@@ -22,7 +22,7 @@ TARGET_BOARD_OMAP_CPU := 4430
 $(call inherit-product, hardware/ti/omap4/omap4.mk)
 
 # Include LineageOS specific additions
-$(call inherit-product, device/samsung/espressowifi/device-cm.mk)
+$(call inherit-product, device/samsung/espressowifi/device-custom.mk)
 
 DEVICE_PACKAGE_OVERLAYS += \
     $(LOCAL_PATH)/overlay/aosp-common
