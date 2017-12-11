@@ -8,6 +8,9 @@ TARGET_USERIMAGES_USE_F2FS := true
 # Liblights
 TARGET_PROVIDES_LIBLIGHT := true
 
+# Target to build standard modules
+TARGET_KERNEL_MODULES += INSTALLED_KERNEL_MODULES
+
 # Recovery
 TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espressowifi
 BOARD_HAS_DOWNLOAD_MODE := true
