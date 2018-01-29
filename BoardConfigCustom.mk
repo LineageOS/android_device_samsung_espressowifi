@@ -1,4 +1,5 @@
 # Charger
+WITH_CM_CHARGER := false
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 BOARD_NO_CHARGER_LED := true
 
