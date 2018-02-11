@@ -8,6 +8,9 @@ TARGET_USERIMAGES_USE_F2FS := true
 # Liblights
 TARGET_PROVIDES_LIBLIGHT := true
 
+# Use the standard ION driver
+BOARD_USE_TI_LIBION := false
+
 # Recovery
 TARGET_RECOVERY_DEVICE_DIRS += device/samsung/espressowifi
 BOARD_HAS_DOWNLOAD_MODE := true
