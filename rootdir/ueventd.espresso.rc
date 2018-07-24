@@ -1,7 +1,6 @@
 #for DSSCOMP
 /dev/dsscomp              0660   system     system
-/dev/tiler                0660   system     system
-/dev/ion                  0770   media      graphics
+/dev/ion                  0666   system     system
 
 #for SYSLINK
 /dev/rpmsg-omx0           0660   drmrpc     drmrpc
@@ -54,6 +53,7 @@
 
 # For SGX
 /dev/pvrsrvkm             0666   system     system
+/dev/pvr_sync             0666   system     system
 
 # Bluetooth
 /dev/ttyO1                0660   bluetooth  net_bt_stack
