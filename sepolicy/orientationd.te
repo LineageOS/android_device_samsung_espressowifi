@@ -1,4 +1,3 @@
-# orientationd
 type orientationd, domain, domain_deprecated;
 type orientationd_exec, exec_type, file_type;
 

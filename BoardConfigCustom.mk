@@ -3,6 +3,9 @@ WITH_CM_CHARGER := false
 BOARD_CHARGER_SHOW_PERCENTAGE := true
 BOARD_NO_CHARGER_LED := true
 
+# Disable dex-preoptimization
+WITH_DEXPREOPT := false
+
 # F2FS filesystem
 TARGET_USERIMAGES_USE_F2FS := true
 
