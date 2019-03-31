@@ -1,0 +1,2 @@
+# For mounting debugfs
+allow init debugfs:dir mounton;
