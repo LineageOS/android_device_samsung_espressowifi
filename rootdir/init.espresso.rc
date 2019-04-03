@@ -178,6 +178,7 @@ on property:ro.carrier=wifi-only
     stop ril-daemon
     stop qmuxd
     stop netmgrd
+    setprop ro.radio.noril 1
 
 # LPM
 on property:ro.bootmode=charger
